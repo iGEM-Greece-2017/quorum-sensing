@@ -4,48 +4,66 @@ properties
   % - replicationPeriod: timesteps between bacterial replications
   % - singleBactModel:
   %   - 
-  % - diffusionConstant: controls AHL diffusion strength
+  % - diffusion: diffusion constants
+  %   - D_AHL
+  %   - C_agar
+  %   - t_s {derived}
   params;
 end
 properties (SetAccess= private)
   timestep;
   worldSize;      % 2-dim
-  hasBacterium;   % [Nx]x[Ny] {sparse<->full,logical}
-  bacteriumState; % struct of many ([Nx]x[Ny] {sparse<->full})
+  hasBacterium;   % [Nx]x[Ny] %{sparse<->full,logical}
+  bacteriumState; % [Nx]x[Ny] cellarray of [9] elements
   AHL;            % [Nx]x[Ny]
 end
 
 methods
-  function this= World(worldSize, params)
-    this.params= params;
+  function this= World(worldSize, randPrc, params)
+    this.params= multicell.World.fillParams(params);
     this.timestep= 0;
     this.worldSize= worldSize;
-    this.hasBacterium= logical(sparse(worldSize,worldSize));
-    this.AHL= sparse(worldSize,worldSize);
-    % TODO: bacteriumState init
-    % TODO: params (validate,fill)
+    this.AHL= zeros(worldSize);
+    % Initial populations
+    this.hasBacterium= rand(worldSize)<randPrc;
+    this.bacteriumState= cellfun(@(x) [this.params.initDNA; zeros(8,1)], ...
+      cell(worldSize), 'uniformoutput',0);
   end
   
   function step(this)
   % Applies the 3 world transition functions: singleBactModel, AHL_diffuse, bact_lifecycle
-    this.timestep= this.timestep+1;
-    [this.bacteriumState, this.AHL]= multicell.singleBactModel(this.hasBacterium, ...
-                          this.bacteriumState, this.AHL, this.params.singleBactModel);
-    this.AHL= multicell.diffuse(this.AHL, this.params.diffusionConstant);
-    % Don't replicate on every timestep, but each "replicationPeriod" timesteps
-    if ~mod(this.timestep, this.params.replicationPeriod)
+    this.AHL= multicell.diffuse(this.AHL,this.params.dt,this.params.r, this.params.diffusion);
+    % Run single bacterium model only once every so many iterations
+    if ~mod(this.timestep, this.params.period.singleBactModel)
+      bactTimestep= floor(this.timestep/this.params.period.singleBactModel);
+      [this.bacteriumState, this.AHL]= multicell.singleBactModel(this.hasBacterium, ...
+                    this.bacteriumState, this.AHL, bactTimestep, this.params.singleBactModel);
+    end
+    %{
+    % Don't replicate on every timestep, but once each "replicationPeriod" timesteps
+    if ~mod(this.timestep, this.params.period.replication)
       this.hasBacterium= multicell.lifecycle(this.hasBacterium);
-    end
     
-    % Transform state representation between sparse and full based on bacterial coverage
-    bacterialCoverage= nnz(this.hasBacterium)/numel(this.hasBacterium);
-    if bacterialCoverage > this.params.sparsity.high && issparse(this.hasBacterium)
-      this.hasBacterium= full(this.hasBacterium);
-      % TODO: this.bacteriumState
-    elseif bacterialCoverage < this.params.sparsity.low && ~issparse(this.hasBacterium)
-      this.hasBacterium= sparse(this.hasBacterium);
-      % TODO: this.bacteriumState
+      %{
+      % Transform state representation between sparse and full based on bacterial coverage
+      bacterialCoverage= nnz(this.hasBacterium)/numel(this.hasBacterium);
+      if bacterialCoverage > this.params.sparsity.high && issparse(this.hasBacterium)
+        this.hasBacterium= full(this.hasBacterium);
+        % TODO: this.bacteriumState
+      elseif bacterialCoverage < this.params.sparsity.low && ~issparse(this.hasBacterium)
+        this.hasBacterium= sparse(this.hasBacterium);
+        % TODO: this.bacteriumState
+      end
+      %}
     end
+    %}
+    
+    this.timestep= this.timestep+1;
+    
+    %% Debug
+    % Total bacteria, total AHL
+    %fprintf('[World.step]: total bacteria: %d \n',sum(sum(this.hasBacterium)));
+    %fprintf('[World.step]: total AHL: %g \n', sum(sum(this.AHL)));
   end
   
   function [timestep,worldSize,hasBacterium,AHL,bacteriumState]= getState(this)
@@ -54,6 +72,26 @@ methods
     hasBacterium= this.hasBacterium;
     AHL= this.AHL;
     bacteriumState= this.bacteriumState;
+  end
+end
+methods (Static)
+  function params= fillParams(params)
+    % Existence assertions
+    assert(isfield(params,'dt'));
+    assert(isfield(params,'r'));
+    assert(isfield(params,'initDNA'));
+    
+    assert(isfield(params,'period'));
+    assert(isfield(params.period,'singleBactModel'));
+    assert(isfield(params.period,'replication'));
+    
+    assert(isfield(params,'diffusion'));
+    assert(isfield(params.diffusion,'D_AHL'));
+    assert(isfield(params.diffusion,'C_agar'));
+    
+    % Fill in the blanks
+    params.diffusion.t_s= (2*params.r)^2 / (4*params.diffusion.C_agar*params.diffusion.D_AHL);
+    params.singleBactModel.dt= params.dt * params.period.singleBactModel;
   end
 end
 end
