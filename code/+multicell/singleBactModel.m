@@ -14,7 +14,7 @@ t_s= tstep*params.dt; t_f= (tstep+1)*params.dt;
 end
 
 function [bs, ahl]= runSingleBact(bs,ahl, t_s,t_f)
-t = linspace(t_s/60,t_f/60, ceil((t_f-t_s)*100)+3);  % Times from seconds to minutes
+t = linspace(t_s/60,t_f/60, ceil((t_f-t_s)*100)+10);  % Times from seconds to minutes
 y= ode4(@singlecell.model,t,[bs{:};ahl]);
 bs= {y(end,1:9)'}; ahl= y(end,10);
 end

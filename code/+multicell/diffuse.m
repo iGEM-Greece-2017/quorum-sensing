@@ -15,8 +15,10 @@ function AHL= diffuse(AHL,dt,r, const)
 % Warning: this algorithm will become unstable for large timesteps
 
 %% Step 1: calculate amounts-to-give
-% toGive [Nx]x[Ny]: total amount to give to all neighbors
-toGive= AHL*const.t_s ./ (2*dt) .* exp(-(2*r)^2*const.t_s*pi / (2*dt));
+% toGive [Nx]x[Ny]: total amount to give to all neighbors. Formula based on circular disk (radius r)
+%   integral, whereas this is a hexagon. "toGive" is slightly larger than it should be.
+%   The correct value is approximated by using 0.91*r instead of r
+toGive= AHL .* exp(-(0.91*r)^2/(4*const.D_AHL*dt));
 
 %% Step 2: filter image to add neighbors' toGive values and to remove own value
 % Actually, because a hexagonal grid is simulated, each row must be alternately treated with

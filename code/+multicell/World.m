@@ -10,22 +10,29 @@ properties
   %   - t_s {derived}
   params;
 end
-properties (SetAccess= private)
+properties %(SetAccess= private)
   timestep;
   worldSize;      % 2-dim
   hasBacterium;   % [Nx]x[Ny] %{sparse<->full,logical}
   bacteriumState; % [Nx]x[Ny] cellarray of [9] elements
   AHL;            % [Nx]x[Ny]
+  hasGPU;
 end
 
 methods
   function this= World(worldSize, randPrc, params)
+    this.hasGPU= gpuDeviceCount>0;
     this.params= multicell.World.fillParams(params);
     this.timestep= 0;
     this.worldSize= worldSize;
     this.AHL= zeros(worldSize);
-    % Initial populations
-    this.hasBacterium= rand(worldSize)<randPrc;
+    if this.hasGPU, this.AHL= gpuArray(this.AHL); end
+    % Initial bacterial populations: only in the middle half of the board
+    this.hasBacterium= false(worldSize);
+    bactPlacementSize= size(this.hasBacterium(ceil(worldSize(1)/4)+1:worldSize(1)-floor(worldSize(1)/4), ...
+      ceil(worldSize(2)/4)+1:worldSize(2)-floor(worldSize(2)/4)));
+    this.hasBacterium(ceil(end/4)+1:end-floor(end/4), ceil(end/4)+1:end-floor(end/4))= ...
+      rand(bactPlacementSize) < prod(worldSize)/prod(bactPlacementSize)*randPrc;
     this.bacteriumState= cellfun(@(x) [this.params.initDNA; zeros(8,1)], ...
       cell(worldSize), 'uniformoutput',0);
   end
@@ -35,11 +42,12 @@ methods
     this.AHL= multicell.diffuse(this.AHL,this.params.dt,this.params.r, this.params.diffusion);
     % Run single bacterium model only once every so many iterations
     if ~mod(this.timestep, this.params.period.singleBactModel)
+      if this.hasGPU, this.AHL= gather(this.AHL); end
       bactTimestep= floor(this.timestep/this.params.period.singleBactModel);
       [this.bacteriumState, this.AHL]= multicell.singleBactModel(this.hasBacterium, ...
                     this.bacteriumState, this.AHL, bactTimestep, this.params.singleBactModel);
+      if this.hasGPU, this.AHL= gpuArray(this.AHL); end
     end
-    %{
     % Don't replicate on every timestep, but once each "replicationPeriod" timesteps
     if ~mod(this.timestep, this.params.period.replication)
       this.hasBacterium= multicell.lifecycle(this.hasBacterium);
@@ -56,10 +64,8 @@ methods
       end
       %}
     end
-    %}
     
     this.timestep= this.timestep+1;
-    
     %% Debug
     % Total bacteria, total AHL
     %fprintf('[World.step]: total bacteria: %d \n',sum(sum(this.hasBacterium)));
