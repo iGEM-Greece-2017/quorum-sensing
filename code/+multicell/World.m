@@ -16,6 +16,7 @@ properties %(SetAccess= private)
   hasBacterium;   % [Nx]x[Ny] %{sparse<->full,logical}
   bacteriumState; % [Nx]x[Ny] cellarray of [9] elements
   AHL;            % [Nx]x[Ny]
+  producedAHL;    % [Nx]x[Ny]: buffer for the AHL produced in batch from the singlebact model and released gradually
   hasGPU;
 end
 
@@ -26,6 +27,7 @@ methods
     this.timestep= 0;
     this.worldSize= worldSize;
     this.AHL= zeros(worldSize);
+    this.producedAHL= zeros(worldSize);
     if this.hasGPU, this.AHL= gpuArray(this.AHL); end
     % Initial bacterial populations: only in the middle half of the board
     this.hasBacterium= false(worldSize);
@@ -40,12 +42,15 @@ methods
   function step(this)
   % Applies the 3 world transition functions: singleBactModel, AHL_diffuse, bact_lifecycle
     this.AHL= multicell.diffuse(this.AHL,this.params.dt,this.params.r, this.params.diffusion);
+    % Adds one part of the AHL produced in the prev singleBact model
+    this.AHL(this.hasBacterium)= this.AHL(this.hasBacterium) + this.producedAHL(this.hasBacterium);
     % Run single bacterium model only once every so many iterations
     if ~mod(this.timestep, this.params.period.singleBactModel)
       if this.hasGPU, this.AHL= gather(this.AHL); end
       bactTimestep= floor(this.timestep/this.params.period.singleBactModel);
-      [this.bacteriumState, this.AHL]= multicell.singleBactModel(this.hasBacterium, ...
+      [this.bacteriumState, this.producedAHL]= multicell.singleBactModel(this.hasBacterium, ...
                     this.bacteriumState, this.AHL, bactTimestep, this.params.singleBactModel);
+      this.producedAHL= this.producedAHL / this.params.period.singleBactModel;
       if this.hasGPU, this.AHL= gpuArray(this.AHL); end
     end
     % Don't replicate on every timestep, but once each "replicationPeriod" timesteps
