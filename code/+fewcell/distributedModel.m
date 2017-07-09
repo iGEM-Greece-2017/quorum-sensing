@@ -17,9 +17,11 @@ geometryFromEdges(model,dl);
 applyBoundaryCondition(model,'neumann','Edge',1:6,'g',0,'q',0);
 applyBoundaryCondition(model,'neumann','Edge',7:10,'g',0,'q',100);
 %% PDE coeffs
+%prodFun= @(~,st)(exp(-st.u*1e10)-0.85)*20e-6;
+bacteriaTable= fewcell.BacteriaTable(1);
 % d: d*u', c: -div(c*grad(u)), f: source
 specifyCoefficients(model, 'Face',1, 'm',0, 'd',1, 'c',1e-9, 'a',0, 'f',0);
-specifyCoefficients(model, 'Face',2, 'm',0, 'd',1, 'c',1e-9, 'a',0, 'f',@(~,st)(exp(-st.u*1e10)-0.85)*20e-6);
+specifyCoefficients(model, 'Face',2, 'm',0, 'd',1, 'c',1e-9, 'a',0, 'f',@(r,s)bacteriaTable.AHLProd(r,s));
 %% Initial conditions
 setInitialConditions(model,0);
 %{
@@ -52,12 +54,20 @@ result= solvepde(model,tlist);
 toc;
 
 %% Plot solution
+% Prepare solution interpolation
+fprintf('Interpolating solution...\n');
+tic;
+[AHLDistrib,x,y]= fewcell.util.interpolateAHL(result,domainLim*0.8,100);
+totalAHL= fewcell.util.integrateAHL(result,domainLim*0.8);
+toc;
+% Plot
 fprintf('Plotting solution...\n');
-global interpresult_graphics;
-interpresult_graphics= []; interpresult_graphics.first= true;
-for t=70:nframes
+global distribAHL_interp_graphics;
+distribAHL_interp_graphics= []; distribAHL_interp_graphics.first= true;
+for t=30:nframes
   tic;
-  viz.interpresult(result,domainLim, 300,false,3,t)
+  fewcell.viz.distribAHL_interp(AHLDistrib,x,y,totalAHL,result.SolutionTimes,...
+    domainLim,false,3,t);
   % Control framerate
   pauseTime= 1/35 - toc;
   if pauseTime>1e-4, pause(pauseTime); end
