@@ -1,4 +1,4 @@
-function j= modelJacobian(~,y)
+function j= modelJacobian_wMembrane(~,y)
 
 %SI Norm Factor 
 SINorms=1/60;
@@ -12,6 +12,7 @@ k1=0.01*SINormsM; k2=1*SINorms; k3=0.05*SINormsM; k4=1*SINorms;
 k5=0.05*SINormsM; k6=10*SINorms; kR=10*SINorms; kI=2.5*SINorms;
 dI=0.01*SINorms; dR=0.002*SINorms; dS=0.002*SINorms; dSS=0.002*SINorms; 
 dAHL=0.01*SINorms;
+Mperm=100; kr=k6/k5; k2DNA=0.015;
 
 j= zeros(9);
 j(1, [1 8 9])= [-k5*y(8), -k5*y(1), k6];
@@ -19,7 +20,9 @@ j(2, [1 2 9])= [aRkR, -dmR, kR];
 j(3, [1 3 9])= [aIkI, -dmI, kI];
 j(4, [3 4])=   [PI, -dI];
 j(5, [2 5 6 7])= [PR, -k1*y(6)-dR, -k1*y(5), k2];
-j(6, [4 5 6 7])= [kAHL, -k1*y(6), -k1*y(5)-dAHL, k2];
+j(6, [4 5 6 7 10])= [kAHL, -k1*y(6), -k1*y(5)-dAHL-Mperm, k2, Mperm];
 j(7, [5 6 7 8])= [k1*y(6), k1*y(5), -k2-dS-4*k3*y(7), k4];
 j(8, [1 7 8 9])= [-k5*y(8), 4*k3*y(7), -k4-dSS-k5*y(1), k6];
 j(9, [1 8 9])= [k5*y(8), k5*y(1), -k6];
+j(10,[6 10])=  [Mperm, -Mperm-dAHL];
+
