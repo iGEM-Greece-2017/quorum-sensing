@@ -4,8 +4,6 @@ classdef BacteriaTable < handle
 
 properties
   cellModels;   % Vector of singlecell models
-  groupQuery= false;
-  lastAHLProd= 0;
 end
 
 methods
@@ -20,7 +18,6 @@ methods
   function extraAHL= AHLProd(this,region,state)
     if any(isnan(state.u)), extraAHL= nan(size(state.u)); return; end
     if state.time < 1e-6, extraAHL= zeros(size(state.u)); return; end
-    n= size(region.x);    % How many points
     
     cellIdx= this.routeCoordCell(region);
     extraAHL= zeros(size(region.x));
@@ -34,7 +31,6 @@ methods
           mean(state.u(cellIdx==i)),state.time) ./ sum(cellIdx==i);
       end
     end
-    %fprintf('[BT::AHLProd]: n=%d\t extraAHL=%.2g\t time: %.2g\n', prod(n), max(extraAHL), max(state.time));
   end
 end
 

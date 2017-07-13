@@ -1,14 +1,14 @@
 %% Parameters
 y0= [1.6E-7;0;0;0;0;0;0;0;0];   % singlecell initial conditions
-tstop= 60*30;  % sec
+tstop= 60*100;  % sec
 
 bactSize= [2;1]*1e-6;
 bactCenters= [0,0];
-domainLim= 5e-5;
-zoominFactor= 2;    % When visualizing, focus on a small part of the domain
+domainLim= 50e-5;
+zoominFactor= 1;    % When visualizing, focus on a small part of the domain
 
-interpResolution= 60;
-timeSubsampling= tstop/10;
+interpResolution= 50;
+timeSubsampling= tstop/8;
 dynamicScaling= true;
 
 %% Time discretization
@@ -37,13 +37,14 @@ applyBoundaryCondition(model,'neumann','Edge',7:8,'g',0,'q',100);
 bacteriaTable= fewcell.BacteriaTable(1,y0,tlist(1));
 % d: d*u', c: -div(c*grad(u)), f: source
 specifyCoefficients(model, 'Face',1, 'm',0, 'd',1, 'c',1e-9, 'a',0, 'f',0);
-specifyCoefficients(model, 'Face',2, 'm',0, 'd',1, 'c',1e-9, 'a',0, 'f',@(r,s)bacteriaTable.AHLProd(r,s));
+specifyCoefficients(model, 'Face',2, 'm',0, 'd',1, 'c',1e-7, 'a',0, 'f',@(r,s)bacteriaTable.AHLProd(r,s));
 %% Initial conditions
 setInitialConditions(model,0);
 %% Mesh
-mesh= generateMesh(model,'MesherVersion','preR2013a','GeometricOrder','linear', ...
-  'Hgrad',1.4,'Hmax',2*domainLim /12);
-totalMeshNodes= size(model.Mesh.Nodes,2)
+mesh= generateMesh(model,'MesherVersion','R2013a', 'Jiggle','minimum', 'JiggleIter',25,...
+  'GeometricOrder','linear', 'Hgrad',1.8,'Hmax',domainLim /8);
+totalMeshNodes= size(model.Mesh.Nodes,2);
+fprintf('Total mesh nodes: %d\n', totalMeshNodes);
 %
 % Plot mesh
 figure(2); clf;
@@ -55,9 +56,9 @@ axis equal;
 %% Solve
 fprintf('--> Solving...\n');
 tic;
-model.SolverOptions.AbsoluteTolerance= 1e-15;
-model.SolverOptions.RelativeTolerance= 1e-6;
-model.SolverOptions.ResidualTolerance= 1e-7;
+model.SolverOptions.AbsoluteTolerance= 1e-15;   % critical: 2e-16
+model.SolverOptions.RelativeTolerance= 1e-8;
+model.SolverOptions.ResidualTolerance= 1e-9;
 model.SolverOptions.MaxIterations= 50;
 model.SolverOptions.MinStep= min(bactSize)/10;
 model.SolverOptions.ReportStatistics= 'on';
