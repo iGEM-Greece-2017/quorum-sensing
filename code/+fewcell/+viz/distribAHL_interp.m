@@ -16,13 +16,13 @@ if ~ishandle(figID) || distribAHL_interp_graphics.first
   set(gca,'YDir','Normal');
   colormap hot;
   distribAHL_interp_graphics.c= colorbar;
-  distribAHL_interp_graphics.c.Label.String= '[AHL]';
+  distribAHL_interp_graphics.c.Label.String= '[AHL] [M]';
   if ~dynamicScale
-    distribAHL_interp_graphics.globalScale= [min(u(:)) max(u(:))];
+    distribAHL_interp_graphics.globalScale= [min(u(:)) max(u(:))+eps(max(u(:)))];
     %distribAHL_interp_graphics.c.Limits= distribAHL_interp_graphics.globalScale;
   end
   xlim([-1 1]*domainLim); ylim([-1 1]*domainLim*sin(pi/3));
-  xlabel('x'); ylabel('y');
+  xlabel('x [m]'); ylabel('y [m]');
   title(titleG1);
   distribAHL_interp_graphics.g1= gca;
   
@@ -31,21 +31,21 @@ if ~ishandle(figID) || distribAHL_interp_graphics.first
   plot(times(t),total_u(t), ...
     'LineStyle','-.','Marker','o','MarkerSize',4,'MarkerEdgeColor','g','MarkerFaceColor','r');
   xlim([times(1) times(end)]);
-  ylim([min(total_u) max(total_u)]);
-  grid minor; xlabel('time'); ylabel('[AHL]');
+  ylim([min(total_u) max(total_u)+eps(max(total_u))]);
+  grid minor; xlabel('time [s]'); ylabel('integrated [AHL] [M*m^2]');
   title(titleG2);
   distribAHL_interp_graphics.g2= gca;
 else
   % [AHL] distribution
+  ut= u(:,:,t);
+  distribAHL_interp_graphics.g1.Children.CData= ut;
+  distribAHL_interp_graphics.g1.Title.String{1}= titleG1{1};
   if dynamicScale
-    distribAHL_interp_graphics.g1.CLimMode= 'auto';
-    %distribAHL_interp_graphics.c.Limits= [min(u) max(u)];
+    distribAHL_interp_graphics.g1.CLim= [min(ut(:)) max(ut(:))];
   else
     %distribAHL_interp_graphics.c.Limits= distribAHL_interp_graphics.globalScale;
     distribAHL_interp_graphics.g1.CLim= distribAHL_interp_graphics.globalScale;
   end
-  distribAHL_interp_graphics.g1.Children.CData= u(:,:,t);
-  distribAHL_interp_graphics.g1.Title.String{1}= titleG1{1};
   
   % Total [AHL]
   distribAHL_interp_graphics.g2.Children.XData= ...
