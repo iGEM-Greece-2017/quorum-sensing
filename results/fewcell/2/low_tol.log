@@ -1,0 +1,16 @@
+>> fewcell.distributedModel
+Total mesh nodes: 208
+--> Solving...
+59548 successful steps
+23615 failed attempts
+126624 function evaluations
+1 partial derivatives
+43460 LU decompositions
+126623 solutions of linear systems
+Elapsed time is 3128.545949 seconds.
+--> Interpolating solution...
+Elapsed time is 3.596436 seconds.
+--> [paused] Press key to plot the solution
+--> Plotting solution...
+Bacterial density: 1.5e+04 bacteria/cm^2	 7.7e+07 bacteria/mL (stacked tightly)
+Final total [AHL] at t=1800.0sec: 6.6e-20
