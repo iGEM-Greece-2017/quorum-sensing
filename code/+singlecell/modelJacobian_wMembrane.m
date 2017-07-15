@@ -1,4 +1,4 @@
-function j= modelJacobian_wMembrane(~,y)
+function j= modelJacobian_wMembrane(~,y,N)
 
 %SI Norm Factor 
 SINorms=1/60;
@@ -24,5 +24,5 @@ j(6, [4 5 6 7 10])= [kAHL, -k1*y(6), -k1*y(5)-dAHL-Mperm, k2, Mperm];
 j(7, [5 6 7 8])= [k1*y(6), k1*y(5), -k2-dS-4*k3*y(7), k4];
 j(8, [1 7 8 9])= [-k5*y(8), 4*k3*y(7), -k4-dSS-k5*y(1), k6];
 j(9, [1 8 9])= [k5*y(8), k5*y(1), -k6];
-j(10,[6 10])=  [Mperm, -Mperm-dAHL];
+j(10,[6 10])=  [N*Mperm, -N*Mperm-dAHL];
 
