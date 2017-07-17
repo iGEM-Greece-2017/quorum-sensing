@@ -18,10 +18,11 @@ if ~ishandle(figID) || distribAHL_interp_graphics.first
   distribAHL_interp_graphics.c= colorbar;
   distribAHL_interp_graphics.c.Label.String= '[AHL] [M]';
   if ~dynamicScale
-    distribAHL_interp_graphics.globalScale= [min(u(:)) max(u(:))+eps(max(u(:)))];
+    distribAHL_interp_graphics.globalScale= [min(u(:,:,t:end)) max(u(:,:,t:end))+eps(max(u(:,:,t:end)))];
     %distribAHL_interp_graphics.c.Limits= distribAHL_interp_graphics.globalScale;
   end
-  xlim([-1 1]*domainLim); ylim([-1 1]*domainLim*sin(pi/3));
+  %xlim([-1 1]*domainLim); ylim([-1 1]*domainLim*sin(pi/3));
+  xlim([min(x), max(x)]); ylim([min(y), max(y)]);
   xlabel('x [m]'); ylabel('y [m]');
   title(titleG1);
   distribAHL_interp_graphics.g1= gca;
@@ -30,8 +31,8 @@ if ~ishandle(figID) || distribAHL_interp_graphics.first
   subplot(1,3,3);
   plot(times(t),total_u(t), ...
     'LineStyle','-.','Marker','o','MarkerSize',4,'MarkerEdgeColor','g','MarkerFaceColor','r');
-  xlim([times(1) times(end)]);
-  ylim([min(total_u) max(total_u)+eps(max(total_u))]);
+  xlim([times(t) times(end)]);
+  ylim([min(total_u(t:end)) max(total_u)+eps(max(total_u(t:end)))]);
   grid minor; xlabel('time [s]'); ylabel('integrated [AHL] [M*m^2]');
   title(titleG2);
   distribAHL_interp_graphics.g2= gca;
