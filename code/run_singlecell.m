@@ -1,12 +1,12 @@
 %% Runs the single cell model
-t= linspace(0,90000,5000);
+t= linspace(0,300000,5000);
 %{
 y0= [1.6E-7;0;0;0;0;2e-5;0;0;0;0].*1e-9;
 y= singlecell.run_wMembrane(y0,t);
 %}
-for N= [1 1e2 1e4 1e6 1e7 1e8]
+for N= [1 31 1e4 1e6]
 fprintf('N=%d\n',N);
-y0= N*[1.6E-7;0;0;0;0;0;0;0;0;0].*1e-9;
+y0= N*[1.6e-9;0;0;0;0;0;0;0;0;0];
 y= singlecell.run_wMembrane(y0,t,N);
 
 singlecell.viz.plot(t,y0,y,N,1);

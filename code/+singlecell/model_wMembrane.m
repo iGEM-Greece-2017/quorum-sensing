@@ -13,6 +13,9 @@ k5=0.05*SINormsM; k6=10*SINorms; kR=10*SINorms; kI=2.5*SINorms;
 dI=0.01*SINorms; dR=0.002*SINorms; dS=0.002*SINorms; dSS=0.002*SINorms; 
 dAHL=0.01*SINorms;
 Mperm=100; kr=k6/k5; k2DNA=0.015;
+bactVol= 2*1*1*1e-18; spaceVol= 0.03*0.03*1e-3;
+relVolume= bactVol/spaceVol;
+
 %y(1)=DNA
 %y(2)=mRNALuxR
 %y(3)=mRNALuxI
@@ -32,6 +35,5 @@ dydt = [-k5*y(8)*y(1)+k6*y(9);
         k1*y(5)*y(6)-k2*y(7)-2*k3*y(7)^2+k4*y(8)-dS*y(7);
         2*k3*y(7)^2-k4*y(8)-dSS*y(8)-k5*y(8)*y(1)+k6*y(9);
         k5*y(8)*y(1)-k6*y(9);
-        N*Mperm*(y(6)-y(10))-dAHL*y(10)];
-
+        relVolume*N*Mperm*(y(6)-y(10))-dAHL*y(10)];
 end

@@ -13,6 +13,8 @@ k5=0.05*SINormsM; k6=10*SINorms; kR=10*SINorms; kI=2.5*SINorms;
 dI=0.01*SINorms; dR=0.002*SINorms; dS=0.002*SINorms; dSS=0.002*SINorms; 
 dAHL=0.01*SINorms;
 Mperm=100; kr=k6/k5; k2DNA=0.015;
+bactVol= 2*1*1*1e-18; spaceVol= 0.03*0.03*1e-3;
+relVolume= bactVol/spaceVol;
 
 j= zeros(9);
 j(1, [1 8 9])= [-k5*y(8), -k5*y(1), k6];
@@ -24,5 +26,5 @@ j(6, [4 5 6 7 10])= [kAHL, -k1*y(6), -k1*y(5)-dAHL-Mperm, k2, Mperm];
 j(7, [5 6 7 8])= [k1*y(6), k1*y(5), -k2-dS-4*k3*y(7), k4];
 j(8, [1 7 8 9])= [-k5*y(8), 4*k3*y(7), -k4-dSS-k5*y(1), k6];
 j(9, [1 8 9])= [k5*y(8), k5*y(1), -k6];
-j(10,[6 10])=  [N*Mperm, -N*Mperm-dAHL];
+j(10,[6 10])=  [N*Mperm*relVolume, -N*Mperm*relVolume-dAHL];
 
