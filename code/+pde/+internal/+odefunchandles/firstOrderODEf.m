@@ -90,24 +90,20 @@ f= -K*u(1:end-8);
 % corr_ahl= AHL' - mean(n_i')
 corr_ahl= model(6) - mean(f(bactNodes));
 f(bactNodes)= f(bactNodes) + corr_ahl;
-%dahl= zeros(length(u)-8,1);
-%dahl(bactNodes)= model(6).*length(bactNodes); % chain rule
 
 f= [f; model([1:5,7:9])];
 
 %{
 % Notes for the Jacobian
-% 1: dn/dn
-d(dAHL/dt)/dn = 1/N * d(dn/dt)/dn
-dAHL/dt= dAHL/dn * dn/dt = 1/N * dn/dt
-
-Attention: funcs of many variables!
-dni/dt= A(nj) + N*dAHL/dt;
-d(dni/dt)/dnj= d(A(nk))/dnj + N/N * d(dni/dt)/dnj =>
-(1-1/N) * d(sss)/dnj= d(A(nk))/dnj; =>
-d(sss)/dnj= d(A(nk))/dnj * N/(N-1);
+  ni'= k-mean(k) + ahl'
+% 1: dn'/dn
+dni'/dnj= dk/dn + d(corr_ahl)/dn= dk/dn + d(ahl')/dn - 1/N*d(Σki)/dnj
+= ki_nj + 1/N*(sum_i(dni'/dnj) - sum_i(ki_nj))
 
 % 2: dy/dn
-d(dy/dt)/dni= d(dy/dt)/dAHL dAHL/dni= d(dy/dt)/dAHL * 1/N
+d(yi')/dnj= d(yi')/dAHL dAHL/dnj= d(yi')/dAHL * 1/N
+
+% 3: dn/dy
+dni'/dyj= dk/dyj - 1/N*sum_i(ki_yj) + d(ahl')/dyj - 
 %}
 end

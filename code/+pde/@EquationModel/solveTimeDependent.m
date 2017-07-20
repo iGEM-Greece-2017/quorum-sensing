@@ -75,6 +75,7 @@ else
     odeoptions = constructODEoptions(u0,rtol,atol,stats,nu,dfcn,mfcn,tsecondOrder);
 end
 
+
 odeoptions.Jacobian= [];
 odeoptions.InitialStep= 1e-3; odeoptions.JConstant= 'off';
 odeoptions.AbsTol= odeoptions.AbsTol*ones(1,size(odeoptions.Mass,1));

@@ -1,10 +1,12 @@
-function distribAHL_interp(u,x,y,total_u,times,domainLim,dynamicScale,figID,t)
+function distribAHL_interp(u,x,y,total_u,times,zoomin,dynamicScale,figID,t)
 global distribAHL_interp_graphics;
 
 titleG1= {sprintf('t=%.2esec | step=%d',times(t),t), ...
-  '[AHL] distribution (interpolated)'};
+  '[AHL] distribution'};
 titleG2= {titleG1{1}, ...
-  'Total [AHL]'};
+  'Total AHL'};
+titleG3= {titleG1{1}, ...
+  'Max [AHL]'};
 
 if ~ishandle(figID) || distribAHL_interp_graphics.first
   distribAHL_interp_graphics.first= false;
@@ -19,23 +21,33 @@ if ~ishandle(figID) || distribAHL_interp_graphics.first
   distribAHL_interp_graphics.c.Label.String= '[AHL] [M]';
   if ~dynamicScale
     distribAHL_interp_graphics.globalScale= [min(u(:,:,t:end)) max(u(:,:,t:end))+eps(max(u(:,:,t:end)))];
-    %distribAHL_interp_graphics.c.Limits= distribAHL_interp_graphics.globalScale;
   end
-  %xlim([-1 1]*domainLim); ylim([-1 1]*domainLim*sin(pi/3));
-  xlim([min(x), max(x)]); ylim([min(y), max(y)]);
+  axis tight;
   xlabel('x [m]'); ylabel('y [m]');
   title(titleG1);
   distribAHL_interp_graphics.g1= gca;
   
-  % Total [AHL]
-  subplot(1,3,3);
+  % Total AHL
+  subplot(2,3,3);
   plot(times(t),total_u(t), ...
     'LineStyle','-.','Marker','o','MarkerSize',4,'MarkerEdgeColor','g','MarkerFaceColor','r');
   xlim([times(t) times(end)]);
   ylim([min(total_u(t:end)) max(total_u)+eps(max(total_u(t:end)))]);
-  grid minor; xlabel('time [s]'); ylabel('integrated [AHL] [M*m^2]');
+  grid minor; xlabel('time [s]'); ylabel('AHL [mol]');
   title(titleG2);
   distribAHL_interp_graphics.g2= gca;
+  
+  % Max [AHL]
+  subplot(2,3,6);
+  plot(times(t),max(max(u(:,:,t))), ...
+    'LineStyle','-.','Marker','d','MarkerSize',4,'MarkerEdgeColor','k','MarkerFaceColor','r');
+  xlim([times(t) times(end)]);
+  ylim([min(max(max(u(:,:,t:end),[],1),[],2)), ...
+        max(max(max(u(:,:,t:end),[],1),[],2)) + ...
+        eps(max(max(max(u(:,:,t:end),[],1),[],2)))]);
+  grid minor; xlabel('time [s]'); ylabel('[AHL] [M]');
+  title(titleG3);
+  distribAHL_interp_graphics.g3= gca;
 else
   % [AHL] distribution
   ut= u(:,:,t);
@@ -48,12 +60,19 @@ else
     distribAHL_interp_graphics.g1.CLim= distribAHL_interp_graphics.globalScale;
   end
   
-  % Total [AHL]
+  % Total AHL
   distribAHL_interp_graphics.g2.Children.XData= ...
     [distribAHL_interp_graphics.g2.Children.XData, times(t)];
   distribAHL_interp_graphics.g2.Children.YData= ...
     [distribAHL_interp_graphics.g2.Children.YData, total_u(t)];
   distribAHL_interp_graphics.g2.Title.String{1}= titleG2{1};
+  
+  % Max [AHL]
+  distribAHL_interp_graphics.g3.Children.XData= ...
+    [distribAHL_interp_graphics.g3.Children.XData, times(t)];
+  distribAHL_interp_graphics.g3.Children.YData= ...
+    [distribAHL_interp_graphics.g3.Children.YData, max(max(u(:,:,t)))];
+  distribAHL_interp_graphics.g3.Title.String{1}= titleG3{1};
 end
 drawnow;
 end
