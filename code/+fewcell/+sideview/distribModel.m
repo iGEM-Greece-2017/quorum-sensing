@@ -4,20 +4,21 @@
 % - Help topic: "Heat Distribution in a Circular Cylindrical Rod"
 %% Parameters
 % time
-tstop= 60*10;  % sec
+tstop= 60*60*48;  % sec
 tstart= 0;
 % coefficients
 c_agar= 1e-9;
 c_cytoplasm= 1e-7;
 d_AHL= 0.01/60;
+bactMperm= 100;
 % geometry
 bactCenters= [0,-2]*1e-6;
 bactSize= [2,1]*1e-6;
-domainLim= [1e-2,2e-3]/4;
+domainLim= [1e-2,2e-3];
 % viz
 zoominFactor= 1;
 interpResolution= 200;
-timeSubsampling= floor((tstop-tstart)/60);
+timeSubsampling= floor((tstop-tstart)/120);
 dynamicScaling= true;
 
 %% Time
@@ -34,7 +35,7 @@ geometryFromEdges(model,geometryFun);
 nBact= size(bactCenters,1);
 applyBoundaryCondition(model, 'neumann', 'Edge',1:4,'g',0,'q',0);
 for b=1:nBact
-  applyBoundaryCondition(model,'neumann', 'Edge',(1:2)+4+(b-1)*2,'g',0,'q',100);
+  applyBoundaryCondition(model,'neumann', 'Edge',(1:4)+4+(b-1)*4,'g',0,'q',bactMperm);
 end
 %% Coefficients
 % The del operator is expressed in cylindrical coordinates. du/dθ=0 due to symmetry, so:
@@ -47,7 +48,8 @@ cCoeff= @(r,s)c_agar*r.x;
 aCoeff= @(r,s)d_AHL*r.x;
 specifyCoefficients(model,'Face',1,'m',0,'d',dCoeff,'c',cCoeff,'a',aCoeff,'f',0);
 for b=1:nBact
-  bactProd= @(r,s)(1e-2*s.u+(1e-10*(s.time==tstart)));
+  %bactProd= @(r,s)(1e-2*s.u+(1e-10*(s.time==tstart)));
+  bactProd= @(r,s)((s.u+b)*10.^b);
   specifyCoefficients(model,'Face',b+1,'m',0,'d',1,'c',c_cytoplasm,'a',d_AHL,'f',bactProd);
 end
 %% Initial conditions
@@ -60,7 +62,7 @@ fprintf('Total mesh nodes: %d\n', totalMeshNodes);
 %
 % Plot mesh
 figure(2); clf;
-pdeplot(model);%,'NodeLabels','on');
+pdeplot(model,'NodeLabels','on');
 axis tight;
 drawnow;
 %}
@@ -68,8 +70,8 @@ drawnow;
 %% Solve
 fprintf('--> Solving...\n');
 model.SolverOptions.AbsoluteTolerance= 1e-12;
-model.SolverOptions.RelativeTolerance= 1e-5;
-model.SolverOptions.ResidualTolerance= 1e-5;
+model.SolverOptions.RelativeTolerance= 1e-8;
+model.SolverOptions.ResidualTolerance= 1e-8;
 model.SolverOptions.MaxIterations= 50;
 model.SolverOptions.MinStep= min(bactSize)/10;
 model.SolverOptions.ReportStatistics= 'on';
@@ -85,6 +87,7 @@ tic;
   fewcell.util.interpolateIntegrateAHL(model,result,domainLim,zoominFactor, ...
                                        interpResolution, timeSubsampling);
 toc;
+
 % Plot
 fprintf('--> [paused] Press key to plot the solution\n');
 pause;
@@ -92,9 +95,9 @@ fprintf('--> Plotting solution...\n');
 global distribAHL_interp_graphics;
 distribAHL_interp_graphics= []; distribAHL_interp_graphics.first= true;
 nframes= length(interpTimes);
-for t=10:nframes
+for t=1:nframes
   fewcell.viz.distribAHL_interp(AHLDistrib,x,y,totalAHL,interpTimes,...
-    domainLim/zoominFactor,dynamicScaling,3,t);
+    zoominFactor,dynamicScaling,3,t);
 end
 
 % Printed results
