@@ -1,33 +1,37 @@
-function [u,x,y,t,total_u]= interpolateIntegrateAHL(model,result,domainLim,zoomin,resolution,timeSubsampling,start_t)  
+function [u,x,y,t,total_u]= interpolateIntegrateAHL(model,result, ...
+            params,startTimeIdx,stopTimeIdx)
+          
 % Precompute interpolation for all times and store it
-if nargin<7, start_t= 1; end
+if nargin<4, startTimeIdx= 1; stopTimeIdx= length(result.SolutionTimes); end
+if nargin==4, error('[interpolateAHL]: specify end time'); end
+domainLim= params.g.domainLim ./ params.viz.zoominFactor;
+resolution= params.viz.interpResolution;
 
-hexDomain= length(domainLim)==1;  % if domainLim is 2 nums, then the domain is rectangular
 % X,Y grid
-x= linspace(-domainLim(1)/zoomin,domainLim(1)/zoomin, resolution);
-if hexDomain, y= x*sin(pi/3);
-else, y= linspace(0,-domainLim(2)/zoomin,resolution);
-end
+if length(resolution)==1, resolution(2)= resolution(1); end
+x= linspace(-domainLim(1),domainLim(1), resolution(1));
+y= linspace(0,-domainLim(2),resolution(2));
 [X,Y]= meshgrid(x,y);
 
 % Slice TimeDependentResults and interpolate + integrate each slice
-t= start_t: timeSubsampling: length(result.SolutionTimes);
+tic;
+t= floor(linspace(startTimeIdx,stopTimeIdx, params.viz.timePoints));
 u= zeros([size(X),length(t)]);
 total_u= zeros([1,length(t)]);
+defaultAbsTol= 1e-10;
 i= 1;
+resultSlice= cell(params.viz.timePoints,1);
 for time= t
-  resultSlice= util.sliceResult(model,result,time);
-  ufun= @(x,y) util.nan0(reshape(interpolateSolution(resultSlice, x,y), size(x)));
+  resultSlice{time}= util.sliceResult(model,result,time);
+end
+for time= t
+  ufun= @(x,y) util.nan0(reshape(interpolateSolution(resultSlice{time}, x,y), size(x)));
   u(:,:,i)= ufun(X,Y);
-  if hexDomain  % hexagonal domain (x,y) & CART coords
-    total_u(i)= integral2(@(x,y) ufun(x,y),...
-      -domainLim,domainLim, @(x)util.hexagonPerim(x,domainLim,-1), @(x)util.hexagonPerim(x,domainLim,1),...
-      'AbsTol',1e-18,'RelTol',1e-6);
-  else  % rectangular domain (r,z) & CYLINDRICAL coords
-    total_u(i)= integral2(@(x,y) pi.*abs(x).*ufun(x,y),...
-      -domainLim(1),domainLim(1), -domainLim(2),0, ...
-      'AbsTol',1e-10, 'RelTol',1e-5);
-  end
+  % rectangular domain (r,z) & CYLINDRICAL coords
+  uSlice= u(:,:,i);
+  absTol= quantile(uSlice(:),0.1); if absTol==0, absTol= defaultAbsTol; end
+  total_u(i)= fewcell.util.integrate(ufun,domainLim,absTol);
   i= i+1;
 end
-t= result.SolutionTimes(t);
+t= result.SolutionTimes(t);   % time idx -> real time
+toc;

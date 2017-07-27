@@ -1,14 +1,21 @@
-function distribAHL_interp(u,x,y,total_u,times,zoomin,dynamicScale,figID,t)
+function plot(u,x,y,times,total_u,figID,t,dynamicScale)
+
 global distribAHL_interp_graphics;
-
-titleG1= {sprintf('t=%.2esec | step=%d',times(t),t), ...
-  '[AHL] distribution'};
-titleG2= {titleG1{1}, ...
-  'Total AHL'};
-titleG3= {titleG1{1}, ...
-  'Max [AHL]'};
-
+if nargin<8, dynamicScale= true; end
+titles{1}= {sprintf('t=%.2esec | step=%d',times(t),t), '[AHL] distribution'};
+titles{2}= {titles{1}{1}, 'Total AHL'};
+titles{3}= {titles{1}{1}, 'Max [AHL]'};
+% On the first call, create the graphics
 if ~ishandle(figID) || distribAHL_interp_graphics.first
+  createGraphics(u,x,y,times,total_u,figID,t,titles,dynamicScale);
+else  % On subsequent calls, only update them
+  updateGraphics(u,total_u,times,t,titles,dynamicScale);
+end
+drawnow;
+end
+
+function createGraphics(u,x,y,times,total_u,figID,t,titles,dynamicScale)
+  global distribAHL_interp_graphics;
   distribAHL_interp_graphics.first= false;
   figure(figID); clf;
   fig= gcf; fig.KeyPressFcn= @util.graphicsPause;
@@ -24,7 +31,7 @@ if ~ishandle(figID) || distribAHL_interp_graphics.first
   end
   axis tight;
   xlabel('x [m]'); ylabel('y [m]');
-  title(titleG1);
+  title(titles{1});
   distribAHL_interp_graphics.g1= gca;
   
   % Total AHL
@@ -34,7 +41,7 @@ if ~ishandle(figID) || distribAHL_interp_graphics.first
   xlim([times(t) times(end)]);
   ylim([min(total_u(t:end)) max(total_u)+eps(max(total_u(t:end)))]);
   grid minor; xlabel('time [s]'); ylabel('AHL [mol]');
-  title(titleG2);
+  title(titles{2});
   distribAHL_interp_graphics.g2= gca;
   
   % Max [AHL]
@@ -46,13 +53,16 @@ if ~ishandle(figID) || distribAHL_interp_graphics.first
         max(max(max(u(:,:,t:end),[],1),[],2)) + ...
         eps(max(max(max(u(:,:,t:end),[],1),[],2)))]);
   grid minor; xlabel('time [s]'); ylabel('[AHL] [M]');
-  title(titleG3);
+  title(titles{3});
   distribAHL_interp_graphics.g3= gca;
-else
+end
+
+function updateGraphics(u,total_u,times,t,titles,dynamicScale)
+  global distribAHL_interp_graphics;
   % [AHL] distribution
   ut= u(:,:,t);
   distribAHL_interp_graphics.g1.Children.CData= ut;
-  distribAHL_interp_graphics.g1.Title.String{1}= titleG1{1};
+  distribAHL_interp_graphics.g1.Title.String{1}= titles{1}{1};
   if dynamicScale
     distribAHL_interp_graphics.g1.CLim= [min(ut(:)) max(ut(:))];
   else
@@ -65,14 +75,12 @@ else
     [distribAHL_interp_graphics.g2.Children.XData, times(t)];
   distribAHL_interp_graphics.g2.Children.YData= ...
     [distribAHL_interp_graphics.g2.Children.YData, total_u(t)];
-  distribAHL_interp_graphics.g2.Title.String{1}= titleG2{1};
+  distribAHL_interp_graphics.g2.Title.String{1}= titles{2}{1};
   
   % Max [AHL]
   distribAHL_interp_graphics.g3.Children.XData= ...
     [distribAHL_interp_graphics.g3.Children.XData, times(t)];
   distribAHL_interp_graphics.g3.Children.YData= ...
     [distribAHL_interp_graphics.g3.Children.YData, max(max(u(:,:,t)))];
-  distribAHL_interp_graphics.g3.Title.String{1}= titleG3{1};
-end
-drawnow;
+  distribAHL_interp_graphics.g3.Title.String{1}= titles{3}{1};
 end
