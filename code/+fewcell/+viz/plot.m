@@ -3,8 +3,8 @@ function plot(u,x,y,times,total_u,figID,t,dynamicScale)
 global distribAHL_interp_graphics;
 if nargin<8, dynamicScale= true; end
 titles{1}= {sprintf('t=%.2esec | step=%d',times(t),t), '[AHL] distribution'};
-titles{2}= {titles{1}{1}, 'Total AHL'};
-titles{3}= {titles{1}{1}, 'Max [AHL]'};
+titles{2}= {'Total AHL'};
+titles{3}= {'Max [AHL]'};
 % On the first call, create the graphics
 if ~ishandle(figID) || distribAHL_interp_graphics.first
   createGraphics(u,x,y,times,total_u,figID,t,titles,dynamicScale);
@@ -27,7 +27,8 @@ function createGraphics(u,x,y,times,total_u,figID,t,titles,dynamicScale)
   distribAHL_interp_graphics.c= colorbar;
   distribAHL_interp_graphics.c.Label.String= '[AHL] [M]';
   if ~dynamicScale
-    distribAHL_interp_graphics.globalScale= [min(u(:,:,t:end)) max(u(:,:,t:end))+eps(max(u(:,:,t:end)))];
+    ut= u(:,:,t:end);
+    distribAHL_interp_graphics.globalScale= [min(ut(:)) max(ut(:))+eps(max(ut(:)))];
   end
   axis tight;
   xlabel('x [m]'); ylabel('y [m]');
@@ -75,12 +76,10 @@ function updateGraphics(u,total_u,times,t,titles,dynamicScale)
     [distribAHL_interp_graphics.g2.Children.XData, times(t)];
   distribAHL_interp_graphics.g2.Children.YData= ...
     [distribAHL_interp_graphics.g2.Children.YData, total_u(t)];
-  distribAHL_interp_graphics.g2.Title.String{1}= titles{2}{1};
   
   % Max [AHL]
   distribAHL_interp_graphics.g3.Children.XData= ...
     [distribAHL_interp_graphics.g3.Children.XData, times(t)];
   distribAHL_interp_graphics.g3.Children.YData= ...
     [distribAHL_interp_graphics.g3.Children.YData, max(max(u(:,:,t)))];
-  distribAHL_interp_graphics.g3.Title.String{1}= titles{3}{1};
 end

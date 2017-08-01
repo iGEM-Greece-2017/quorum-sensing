@@ -2,8 +2,8 @@ function [model,tlist,domainVolume]= problemSetup(p,plotMesh)   %param
 % Setup all elements of the pde problem
 
 %% Time
-ntime= (p.t.tstop - p.t.tstart)+1;
-tlist= linspace(p.t.tstart, p.t.tstop, ntime);
+%ntime= (p.t.tstop - p.t.tstart)+1;
+tlist= unique(floor(linspace(p.t.tstart, p.t.tstop, p.t.timePoints)));
 %% Geometry
 geometryFun= @(varargin)fewcell.bactAgarGeom(...
                 p.g.bactCenters,p.g.bactSize, p.g.domainLim, varargin);

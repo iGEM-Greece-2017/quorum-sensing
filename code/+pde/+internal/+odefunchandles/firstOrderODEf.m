@@ -15,7 +15,7 @@ if ~(femodel.vq || femodel.vg || femodel.vh || femodel.vr || ...
 end
 
 if(femodel.numConstrainedEqns == femodel.totalNumEqns)
-    uFull = u(1:end-8);          %%% @@@   CUSTOM   @@@ %%%
+    uFull= u(1:end-8);
 else
     uFull = femodel.B*u + femodel.ud;
 end
@@ -26,7 +26,9 @@ end
 
 if femodel.vc || femodel.va || femodel.vf
     if(femodel.nrp==2)
-        [femodel.K, femodel.F] = formGlobalKF2D(femodel.emptyPDEModel, femodel.p, femodel.t, femodel.coefstruct,uFull,t);
+        [femodel.K, femodel.F]= ...
+          formGlobalKF2D(femodel.emptyPDEModel, femodel.p, ...
+                         femodel.t, femodel.coefstruct,uFull,t);
         A = formGlobalM2D(femodel.emptyPDEModel, femodel.p, femodel.t, femodel.coefstruct,uFull,t,'a');
         femodel.A = A; % TEMP - Change the femodel to have a A matrix later.
     elseif(femodel.nrp==3)
@@ -35,7 +37,6 @@ if femodel.vc || femodel.va || femodel.vf
         femodel.A = A;
     end
 end
-
 
 if ~(femodel.vh || femodel.vr)
     % neither H nor R are functions of t or u
@@ -74,8 +75,6 @@ else
     femodel.ud=ud;
 end
 
-%f=-K*u+F;
-
 %% @@@ Custom @@@ %%
 global bactNodes;
 ahl= mean(u(bactNodes));
@@ -88,8 +87,7 @@ f= -K*u(1:end-8);
 % the chain rule: mean(n_i')==AHL'
 % A correction factor will be added to the n_i' to accomodate it:
 % corr_ahl= AHL' - mean(n_i')
-corr_ahl= model(6) - mean(f(bactNodes));
-f(bactNodes)= f(bactNodes) + corr_ahl;
+f(bactNodes)= f(bactNodes) - mean(f(bactNodes)) + model(6);
 
 f= [f; model([1:5,7:9])];
 

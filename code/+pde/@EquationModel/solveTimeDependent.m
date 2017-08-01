@@ -75,13 +75,15 @@ else
     odeoptions = constructODEoptions(u0,rtol,atol,stats,nu,dfcn,mfcn,tsecondOrder);
 end
 
-
 odeoptions.Jacobian= [];
 odeoptions.InitialStep= 1e-3; odeoptions.JConstant= 'off';
 odeoptions.AbsTol= odeoptions.AbsTol*ones(1,size(odeoptions.Mass,1));
-%odeoptions.AbsTol(end-7:end)= [1e-18,1e-20,1e-19,1e-17,1e-18,  1e-25,1e-39,1e-49]*1e5;
-odeoptions.AbsTol(end-7:end)= odeoptions.AbsTol(1);
+
+odeoptions.AbsTol(end-7:end)= [1e-10,5e-10,1e-10,1e-10,1e-10,  1e-11,1e-10,1e-11];
+%odeoptions.AbsTol(end-7:end)= odeoptions.AbsTol(1);
+%odeoptions.AbsTol(end-7:end)= 1e-9;
 y0= [1.6E-9;0;0;0;0;  0;0;0];
+
 uu0= [uu0; y0];
 
 global bactNodes;

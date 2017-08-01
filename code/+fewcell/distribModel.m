@@ -4,8 +4,9 @@
 % - Help topic: "Heat Distribution in a Circular Cylindrical Rod"
 %% Parameters
 % time
-params.t.tstop= 60*1;  % sec
+params.t.tstop= 60*60*1;  % sec
 params.t.tstart= 0;
+params.t.timePoints= 30;
 % coefficients
 params.c.c_agar= 1e-9;
 params.c.c_cytoplasm= 1e-7;
@@ -16,20 +17,21 @@ params.g.bactCenters= [0,-10]*1e-6;
 params.g.bactSize= [2,1]*1e-6;
 params.g.domainLim= [0.5e-2,2e-3];
 % mesh
-params.m.Hgrad= 1.25;
+params.m.Hgrad= 1.3;
 params.m.HmaxCoeff= 1/12;
 % solve
-params.solve.AbsTol= 1e-10; % for diffusion nodes
-params.solve.RelTol= 1e-7;
-params.solve.FeatureSize= min(params.g.bactSize);
+params.solve.AbsTol= 1e-8; % for diffusion nodes
+params.solve.RelTol= 1e-8;
+params.solve.FeatureSize= min(params.g.bactSize)/2;
 % viz
-params.viz.zoominFactor= [4,2];
-params.viz.interpResolution= 80;
-params.viz.timePoints= 120;
+params.viz.zoominFactor= [5,3];
+params.viz.interpResolution= 100;
+params.viz.timePoints= params.t.timePoints;
 params.viz.dynamicScaling= true;
 
 %% Solve
 [model,tlist,domainVolume]= fewcell.problemSetup(params,true);
+params.viz.timePoints= length(tlist);
 fprintf('--> Solving...\n');
 result= fewcell.solveProblem(model,tlist,params.solve);
 
@@ -38,13 +40,6 @@ result= fewcell.solveProblem(model,tlist,params.solve);
 fprintf('--> Interpolating solution...\n');
 [AHLDistrib,x,y,interp_t,totalAHL]= fewcell.util.interpolateIntegrateAHL(model,result,params);
 % Plot
-fprintf('--> [paused] Press key to plot the solution\n');
-pause;
+fprintf('--> [paused] Press key to plot the solution\n'); pause;
 fprintf('--> Plotting solution...\n');
-global distribAHL_interp_graphics;
-distribAHL_interp_graphics= []; distribAHL_interp_graphics.first= true;
-for t= 1:length(interp_t)
-  fewcell.viz.plot(AHLDistrib,x,y,interp_t,totalAHL,3,t);
-end
-% Printed results
-fprintf('Final total [AHL] at t=%.1fsec: %.3g\n\n', interp_t(end), totalAHL(end));
+fewcell.output(AHLDistrib,x,y,interp_t,totalAHL,false);
