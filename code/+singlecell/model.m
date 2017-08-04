@@ -1,17 +1,17 @@
 function dydt = model(~,y)
 
-%SI Norm Factor 
-SINorms=1/60;
-SINormsM=1/(60e-9);
-%The kinetic constants are in SI Units (1/s, 1/sM)
-aRkR=0.01*SINorms; aIkI=0.025*SINorms;
-PR=6.94*SINorms; PI=6.94*SINorms;
-dmR=0.347*SINorms; dmI=0.347*SINorms;
-kAHL=0.04*SINorms;
-k1=0.01*SINormsM; k2=1*SINorms; k3=0.05*SINormsM; k4=1*SINorms; 
-k5=0.05*SINormsM; k6=10*SINorms; kR=10*SINorms; kI=2.5*SINorms;
-dI=0.01*SINorms; dR=0.002*SINorms; dS=0.002*SINorms; dSS=0.002*SINorms; 
-dAHL=0.01*SINorms;
+% The kinetic constants are in (1/min, 1/(min*nM))
+% Space is in μm
+aRkR=0.01; aIkI=0.025;
+PR=6.94; PI=6.94;
+dmR=0.347; dmI=0.347;
+kAHL=0.04;
+k1=0.01; k2=1; k3=0.05; k4=1; 
+k5=0.05; k6=10; kR=10; kI=2.5;
+dI=0.01; dR=0.002; dS=0.002; dSS=0.002; 
+dAHL=0.01;
+Mperm=100; kr=k6/k5; k2DNA=0.015;
+
 %y(1)=DNA
 %y(2)=mRNALuxR
 %y(3)=mRNALuxI
