@@ -17,6 +17,12 @@ end
 
 [p,e,t] = self.Mesh.meshToPet();
 
+%{ @@@ Custom @@@ %%
+nBact= length(unique(t(4,:)))-1;
+global bactNodes;
+bactNodes= cell(nBact,1);
+%} @@@ Custom @@@ %%
+
 femodel=pde.DynamicDiscretizedPDEModel(self,p,e,t,coefstruct,u0,tlist,tsecondOrder);
 
 if(~femodel.IsSpatialCoefficientsNonlinear)
@@ -75,23 +81,36 @@ else
     odeoptions = constructODEoptions(u0,rtol,atol,stats,nu,dfcn,mfcn,tsecondOrder);
 end
 
+
+%{ @@@ Custom @@@ %%
+global solveInternalParams;
 odeoptions.Jacobian= [];
 odeoptions.InitialStep= 1e-3; odeoptions.JConstant= 'off';
-odeoptions.AbsTol= odeoptions.AbsTol*ones(1,size(odeoptions.Mass,1));
+odeoptions.AbsTol= [odeoptions.AbsTol*ones(1,length(uu0)), zeros(1,nBact*8)];
 
-odeoptions.AbsTol(end-7:end)= [1e-10,5e-10,1e-10,1e-10,1e-10,  1e-11,1e-10,1e-11];
+nY= nBact*8;  % number of extra variables
+odeoptions.AbsTol(end-(nY-1):end)= repmat(solveInternalParams.AbsTol_y, 1,nBact);
 %odeoptions.AbsTol(end-7:end)= odeoptions.AbsTol(1);
 %odeoptions.AbsTol(end-7:end)= 1e-9;
-y0= [1.6E-9;0;0;0;0;  0;0;0];
+uu0= [uu0; repmat(solveInternalParams.y0,nBact,1)];
 
-uu0= [uu0; y0];
-
-global bactNodes;
-%load('bactNodes3.mat');
-bactNodes= find(femodel.F);   % works for 1 bacterium only!!!
+domainNodes= unique( t(1:3,t(4,:)==1) );
+for b= 1:nBact
+  bactNodes{b}= unique( t(1:3,t(4,:)==b+1) );         % all nodes for elements in bacterium
+  bactNodes{b}= setdiff(bactNodes{b}, domainNodes);   % strip boundary nodes
+  fprintf('[solveTimeDependent]: nodes in bact#%d: %d\n', b,length(bactNodes{b}));
+end
 [~,uu]=ode15s(fcn,tlist,uu0,odeoptions);
 
-uu= uu(:,1:end-8);
+global yyResults;
+for b= 1:nBact
+  ahl= mean(uu(:,bactNodes{b}),2);
+  yIdx= (nBact-b+1)*8-1;    % where the y variables for this bacterium start (relative to end)
+  yyResults{b}= [uu(:,end-yIdx: end-yIdx+4), ahl, uu(:,end-yIdx+5: end-yIdx+7)];   % y variables for this bacterium
+end
+uu= uu(:,1:end-nY);
+%} @@@ Custom @@@ %%
+
 
 numCompTimes = size(uu, 1);
 if(numCompTimes < size(tlist, 2))

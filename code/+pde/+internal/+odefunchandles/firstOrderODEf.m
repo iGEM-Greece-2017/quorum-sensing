@@ -6,6 +6,10 @@ function f=firstOrderODEf(t,u)
 %       Copyright 2015-2016 The MathWorks, Inc.
 
 global femodel
+%{ @@@ Custom @@@ %%
+global bactNodes;
+nBact= length(bactNodes);
+%} @@@ Custom @@@ %%
 
 
 if ~(femodel.vq || femodel.vg || femodel.vh || femodel.vr || ...
@@ -15,7 +19,7 @@ if ~(femodel.vq || femodel.vg || femodel.vh || femodel.vr || ...
 end
 
 if(femodel.numConstrainedEqns == femodel.totalNumEqns)
-    uFull= u(1:end-8);
+    uFull= u(1:end-nBact*8);
 else
     uFull = femodel.B*u + femodel.ud;
 end
@@ -76,20 +80,24 @@ else
 end
 
 %% @@@ Custom @@@ %%
-global bactNodes;
-ahl= mean(u(bactNodes));
-model= singlecell.model(1,[u(end-7:end-3);ahl;u(end-2:end)]);
-% model(6) contains the total derivative of all the contributing terms
-% model(6):= d(ahl)/dt
 % Initial calculation for d(n_i)/dt
-f= -K*u(1:end-8);
-% From the definition of <ahl>, an equation that must hold can be derived with
-% the chain rule: mean(n_i')==AHL'
-% A correction factor will be added to the n_i' to accomodate it:
-% corr_ahl= AHL' - mean(n_i')
-f(bactNodes)= f(bactNodes) - mean(f(bactNodes)) + model(6);
+f= [-K*u(1:end-nBact*8); zeros(nBact*8,1)];
+for b= 1:nBact
+  ahl= mean(u(bactNodes{b}));
+  yIdx= (nBact-b+1)*8-1;    % where the y variables for this bacterium start (relative to end)
+  yBact= [u(end-yIdx: end-yIdx+4); ahl; u(end-yIdx+5: end-yIdx+7)];   % y variables for this bacterium
+  model= singlecell.model(1,yBact);
+  % model(6) contains the total derivative of all the contributing terms
+  % model(6):= d(ahl)/dt
+  % From the definition of <ahl>, an equation that must hold can be derived with
+  % the chain rule: mean(n_i')==AHL'
+  % A correction factor will be added to the n_i' to accomodate it:
+  % corr_ahl= AHL' - mean(n_i')
+  %f(bactNodes{b}(1:2))= f(bactNodes{b}(1:2)) - mean(f(bactNodes{b}(1:2))) + model(6);
+  f(bactNodes{b})= f(bactNodes{b}) - mean(f(bactNodes{b})) + model(6);
 
-f= [f; model([1:5,7:9])];
+  f(end-yIdx: end-yIdx+7)= model([1:5,7:9]);
+end
 
 %{
 % Notes for the Jacobian

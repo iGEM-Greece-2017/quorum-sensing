@@ -13,7 +13,8 @@ model= createpde(1);
 geometryFromEdges(model,geometryFun);
 %% Boundaries
 nBact= size(p.g.bactCenters,1);
-applyBoundaryCondition(model, 'neumann', 'Edge',1:4,'g',0,'q',0);
+applyBoundaryCondition(model, 'neumann', 'Edge',1,'g',0,'q',0);
+applyBoundaryCondition(model, 'neumann', 'Edge',2:4,'g',0,'q',@(r,s)s.u);
 for b=1:nBact
   applyBoundaryCondition(model,'neumann', 'Edge',(1:4)+4+(b-1)*4,'g',0,'q',p.c.bactMperm);
 end
@@ -29,7 +30,7 @@ aCoeff= @(r,s)p.c.d_AHL*r.x;
 specifyCoefficients(model,'Face',1,'m',0,'d',dCoeff,'c',cCoeff,'a',aCoeff,'f',0);
 for b=1:nBact
   %bactProd= @(r,s)(1e-2*s.u+(1e-10*(s.time==tstart)));
-  bactProd= @(r,s)((s.u+b)*10.^b);  % Only to differentiate different bacteria
+  bactProd= @(r,s)(s.u+r.x);
   dCoeff= @(r,s)r.x;
   cCoeff= @(r,s)p.c.c_cytoplasm*r.x;
   aCoeff= @(r,s)p.c.d_AHL*r.x;
@@ -39,7 +40,7 @@ end
 %% Initial conditions
 setInitialConditions(model,0);
 %% Mesh
-generateMesh(model,'MesherVersion','R2013a','Jiggle','minimum','JiggleIter',30,...
+generateMesh(model,'MesherVersion','R2013a','Jiggle','minimum','JiggleIter',50,...
   'Hgrad',p.m.Hgrad, 'Hmax',p.g.domainLim(1) * p.m.HmaxCoeff);
 totalMeshNodes= size(model.Mesh.Nodes,2);
 fprintf('Total mesh nodes: %d\n', totalMeshNodes);
@@ -48,6 +49,7 @@ fprintf('Total mesh nodes: %d\n', totalMeshNodes);
 if plotMesh
   figure(2); clf;
   pdeplot(model);%,'NodeLabels','on');
+  %pdegplot(geometryFun, 'EdgeLabels','on','FaceLabels','on');
   axis tight;
   drawnow;
 end

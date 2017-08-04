@@ -30,7 +30,9 @@ if(femodel.vh)
 end
 m=femodel.B'*femodel.Mass*femodel.B;
 
-m= [m; zeros(8,size(m,2))];
-m= [m, [zeros(size(m,2),8); eye(8)]];
+global bactNodes;
+nBact= length(bactNodes);
+m= [m; zeros(nBact*8,size(m,2))];
+m= [m, [zeros(size(m,2),nBact*8); eye(nBact*8)]];
 
 end

@@ -15,12 +15,13 @@ y= linspace(0,-domainLim(2),resolution(2));
 
 % Slice TimeDependentResults and interpolate + integrate each slice
 tic;
-t= floor(linspace(startTimeIdx,stopTimeIdx, params.viz.timePoints));
+timePoints= min(params.viz.timePoints,length(result.SolutionTimes));
+t= floor(linspace(startTimeIdx,stopTimeIdx, timePoints));
 u= zeros([size(X),length(t)]);
 total_u= zeros([1,length(t)]);
 defaultAbsTol= 1e-10;
 i= 1;
-resultSlice= cell(params.viz.timePoints,1);
+resultSlice= cell(timePoints,1);
 for time= t
   resultSlice{time}= util.sliceResult(model,result,time);
 end
