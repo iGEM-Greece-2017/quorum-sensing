@@ -18,9 +18,9 @@ g= gca; g.XMinorGrid= 'on'; g.YMinorGrid= 'on';
 title('LuxR, LuxI'); legend('LuxR','LuxI', 'location','southeast');
 
 subplot(224); yyaxis left; plot(t,y(:,8)./N); ylabel('c [nM]'); axis tight;
-yyaxis right; plot(t,y(:,9)); ylabel('c [nM]'); axis tight;
+yyaxis right; plot(t,y(:,7)); ylabel('c [nM]'); axis tight;
 xlabel('t [hour]'); xlim([t(1) t(end)]);
 g= gca; g.XMinorGrid= 'on'; g.YMinorGrid= 'on';
-title(['LuxRAHL2, DNALuxRAHL2']); legend('LuxRAHL2','DNALuxRAHL2', 'location','southeast');
+title(['LuxRAHL2, LuxRAHL']); legend('LuxRAHL2','LuxRAHL', 'location','southeast');
 
 suptitle(sprintf('N=%d cells', N));
