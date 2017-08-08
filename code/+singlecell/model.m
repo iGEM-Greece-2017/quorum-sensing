@@ -25,11 +25,11 @@ dydt = [-k5*y(8).*y(1)+k6*y(9);               %1
         aRkR*y(1)-dmR*y(2)+kR*y(9);           %2
         aIkI*y(1)-dmI*y(3)+kI*y(9);           %3
         PI*y(3)-dI*y(4);                      %4
-        PR*y(2)-k1*y(5).*y(6)+k2*y(7)-dR*y(5);                %5
-        kAHL*y(4)-k1*y(5).*y(6)+k2*y(7)-dAHL*y(6);            %6
+        PR*y(2)-k1*y(5).*y(6)+k2*y(7)-dR*y(5);                    %5
+        kAHL*y(4)-k1*y(5).*y(6)+k2*y(7)-dAHL*y(6);                %6
         k1*y(5).*y(6) -k2*y(7) -2*k3*y(7).^2 +k4*y(8) -dS*y(7);   %7
-        k3*y(7).^2 -k4*y(8) -dSS*y(8) -k5*y(8).*y(1) +k6*y(9);  %8
-        k5*y(8).*y(1)-k6*y(9)];                               %9
+        k3*y(7).^2 -k4*y(8) -dSS*y(8) -k5*y(8).*y(1) +k6*y(9);    %8
+        k5*y(8).*y(1)-k6*y(9)];                                   %9
 end
 
 %{
@@ -47,25 +47,6 @@ f2:
 dydt= knew1*y(5).*y(6) - knew2*y(8) - dSS*y(8)
 %}
 
-y8'= 2k3 y7^2 -k4y8 -dss y8
-y7'= k1y5y6 -k2y7 -2k3y7^2 +k4y8 -ds y7 =>
-sy7-y7_0= k1y5**y6 -k2y7 -2k3y7**y7 +k4y8 -ds y7
-
-sy8-y8_0 + sy7-y7_0= k1y5**y6 -k2y7 +k4y8 -ds y7 -k4y8 -dss y8 =>
-(s+k2+ds)y7= k1y5**y6 -dssy8 -sy8+y8_0 +y7_0 =>
-y7= (A) / (B) =>
-sy8-y8_0= 2k3y7**y7 -k4y8 -dssy8 =>
-sy8-y8_0= 2k3 ((A/B)**(A/B)) -k4y8 -dssy8 =>
-y8'= 2k3 (A/B)^2 -k4y8 -dssy8
-
-A/B= (k1y5**y6 -dssy8 -sy8+y8_0 +y7_0) / (s+k2+ds)  =>{L-1}=> 
-A/B= (k1y5y6 -dssy8 -y8' +y7) ** (e^(-(k2+ds)t)*u(t))
-
-%
-y8'= 2k3 y7^2 -k4y8 -dss y8
-y7'= k1y5y6 -k2y7 -2k3y7^2 +k4y8 -ds y7
-
-y8'+y7'= +k1y5y6 -(k2+ds)y7 -dssy8
 
 
 

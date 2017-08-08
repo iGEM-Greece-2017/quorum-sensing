@@ -1,5 +1,5 @@
 %% Runs the single cell model
-t= linspace(0,60*120,5000);
+t= linspace(0,60*30,400);
 %t= linspace(0,300,300);
 %{
 y0= [1.6E-7;0;0;0;0;2e-5;0;0;0;0].*1e-9;
@@ -9,8 +9,9 @@ global modelJacobian_minsvd;
 modelJacobian_minsvd.svd= [];
 modelJacobian_minsvd.stability= [];
 modelJacobian_minsvd.j= [];
-for N= logspace(0,6,4)
-  if N>1, pause; end
+first= true;
+for N= 5%logspace(0,6,4)
+  if ~first, pause; end
   fprintf('N=%d\n',N);
   y0= N*[1.6;0;0;0;0;0;0;0;0;0] .* singlecell.yNormalization(1:10)';
   tic;
@@ -29,6 +30,7 @@ for N= logspace(0,6,4)
   yyaxis right; plot(modelJacobian_minsvd.stability(2:end));
   legend('minsvd','svdratio');
   %}
+  first= false;
 end
 
-
+save('code/+singlecell/+simplify/data', 'y','t');
