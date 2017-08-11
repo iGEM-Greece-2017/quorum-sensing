@@ -1,7 +1,6 @@
 function dydt = model(~,y)
 
 % The kinetic constants are in (1/min, 1/(min*nM))
-% Space is in μm
 aRkR=0.01; aIkI=0.025;
 PR=6.94; PI=6.94;
 dmR=0.347; dmI=0.347;
@@ -21,15 +20,15 @@ Mperm=100; kr=k6/k5; k2DNA=0.015;
 %y(7)=LuxRAHL
 %y(8)=LuxRAHL2
 %y(9)=DNALuxRAHL2
-dydt = [-k5*y(8).*y(1)+k6*y(9);               %1
-        aRkR*y(1)-dmR*y(2)+kR*y(9);           %2
-        aIkI*y(1)-dmI*y(3)+kI*y(9);           %3
-        PI*y(3)-dI*y(4);                      %4
-        PR*y(2)-k1*y(5).*y(6)+k2*y(7)-dR*y(5);                    %5
-        kAHL*y(4)-k1*y(5).*y(6)+k2*y(7)-dAHL*y(6);                %6
-        k1*y(5).*y(6) -k2*y(7) -2*k3*y(7).^2 +k4*y(8) -dS*y(7);   %7
-        k3*y(7).^2 -k4*y(8) -dSS*y(8) -k5*y(8).*y(1) +k6*y(9);    %8
-        k5*y(8).*y(1)-k6*y(9)];                                   %9
+dydt = [-k5*y(8).*y(1)+k6*y(9);                 %1
+        aRkR*y(1)-dmR*y(2)+kR*y(9);             %2
+        aIkI*y(1)-dmI*y(3)+kI*y(9);             %3
+        PI*y(3)-dI*y(4);                        %4
+        PR*y(2)-k1*y(5).*y(6)+k2*y(7)-dR*y(5);              %5
+        kAHL*y(4)-k1*y(5).*y(6)+k2*y(7)-dAHL*y(6);          %6
+        k1*y(5).*y(6)-k2*y(7)-2*k3*y(7).^2+k4*y(8)-dS*y(7); %7
+        k3*y(7).^2-k4*y(8)-dSS*y(8)-k5*y(8).*y(1)+k6*y(9);  %8
+        k5*y(8).*y(1)-k6*y(9)];                             %9
 end
 
 %{

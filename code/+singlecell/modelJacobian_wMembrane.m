@@ -1,4 +1,4 @@
-function j= modelJacobian_wMembrane(~,y,N)
+function j= modelJacobian_wMembrane(~,y,N,spaceVol)
 
 % The kinetic constants are in (1/min, 1/(min*nM))
 % Space is in mm
@@ -11,7 +11,7 @@ k5=0.05; k6=10; kR=10; kI=2.5;
 dI=0.01; dR=0.002; dS=0.002; dSS=0.002; 
 dAHL=0.01;
 Mperm=100; kr=k6/k5; k2DNA=0.015;
-bactVol= 2*1*1*1e-9; spaceVol= 2*20^2;
+bactVol= 2*1*1*1e-9;
 relVolume= bactVol/spaceVol;
 
 j= zeros(9);
