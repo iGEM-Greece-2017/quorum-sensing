@@ -3,7 +3,7 @@ function [model,tlist,domainVolume]= problemSetup(p,plotMesh)   %param
 
 %% Time
 %ntime= (p.t.tstop - p.t.tstart)+1;
-tlist= unique(floor(linspace(p.t.tstart, p.t.tstop, p.t.timePoints)));
+tlist= linspace(p.t.tstart, p.t.tstop, p.t.timePoints);
 %% Geometry
 geometryFun= @(varargin)fewcell.bactAgarGeom(...
                 p.g.bactCenters,p.g.bactSize, p.g.domainLim, varargin);
@@ -14,7 +14,8 @@ geometryFromEdges(model,geometryFun);
 %% Boundaries
 nBact= size(p.g.bactCenters,1);
 applyBoundaryCondition(model, 'neumann', 'Edge',1,'g',0,'q',0);
-applyBoundaryCondition(model, 'neumann', 'Edge',2:4,'g',0,'q',@(r,s)s.u);
+%applyBoundaryCondition(model, 'dirichlet', 'Edge',2:4,'u',0);
+applyBoundaryCondition(model, 'neumann', 'Edge',2:4,'g',0,'q',0);
 for b=1:nBact
   applyBoundaryCondition(model,'neumann', 'Edge',(1:4)+4+(b-1)*4,'g',0,'q',p.c.bactMperm);
 end
@@ -29,8 +30,10 @@ cCoeff= @(r,s)p.c.c_agar*r.x;
 aCoeff= @(r,s)p.c.d_AHL*r.x;
 specifyCoefficients(model,'Face',1,'m',0,'d',dCoeff,'c',cCoeff,'a',aCoeff,'f',0);
 for b=1:nBact
-  %bactProd= @(r,s)(1e-2*s.u+(1e-10*(s.time==tstart)));
-  bactProd= @(r,s)(s.u+r.x);
+  %bactProd= @(r,s)(10*s.u+(1e1*(s.time<2)));
+  %bactProd= @(r,s)1e-12*(s.u+r.x);
+  bactProd= 0;
+  %bactProd= @(r,s)(1*(s.time==tstart));
   dCoeff= @(r,s)r.x;
   cCoeff= @(r,s)p.c.c_cytoplasm*r.x;
   aCoeff= @(r,s)p.c.d_AHL*r.x;
@@ -40,7 +43,7 @@ end
 %% Initial conditions
 setInitialConditions(model,0);
 %% Mesh
-generateMesh(model,'MesherVersion','R2013a','Jiggle','minimum','JiggleIter',50,...
+generateMesh(model,'MesherVersion','R2013a', 'Jiggle','minimum','JiggleIter',50,...
   'Hgrad',p.m.Hgrad, 'Hmax',p.g.domainLim(1) * p.m.HmaxCoeff);
 totalMeshNodes= size(model.Mesh.Nodes,2);
 fprintf('Total mesh nodes: %d\n', totalMeshNodes);
