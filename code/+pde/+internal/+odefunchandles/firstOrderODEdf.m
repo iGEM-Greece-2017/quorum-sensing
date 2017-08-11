@@ -69,25 +69,31 @@ end
 
 
 global bactNodes;
-N= length(bactNodes);
-ahl= mean(u(bactNodes));
-modelJacobian= singlecell.modelJacobian(1,[u(end-7:end-3);ahl;u(end-2:end)]);
-% N: pde mesh nodes, y: singlecell variables
-% 1: dn/dn
-dndn= df;
-dndn(bactNodes(1),:)= 0;
-% 2: dn/dy
-dndy= zeros(size(df,1),8);
-dndy(bactNodes(1),:)= modelJacobian(6,[1:5,7:9]);
-% 3: dy/dy
-dydy= modelJacobian([1:5,7:9],[1:5,7:9]);
-% 4: dy/dn
-dydn= zeros(8, size(df,2));
-dydn(:,bactNodes(1))= modelJacobian([1:5,7:9],6);
-% Concatenate the pieces
-df= [dndn, dndy; dydn, dydy];
+nBact= length(bactNodes);
 
-%min(svd(dydy))
+% N: pde mesh nodes, y: singlecell variables
+% 1: dn'/dn
+% -> Remains unchanged
+
+for b= 1:nBact
+  ahl= u(bactNodes{b}(1));
+  yIdx= (nBact-b+1)*8-1;    % where the y variables for this bacterium start (relative to end)
+  yBact= [u(end-yIdx: end-yIdx+4); ahl; u(end-yIdx+5: end-yIdx+7)];   % y variables for this bacterium
+  jac= singlecell.modelJacobian(1,yBact);
+  
+  % 2: dn'/dy
+  dndy= zeros(size(df,1),8);
+  dndy(bactNodes{b}(1),:)= jac(6,[1:5,7:9]);
+  % 3: dy'/dy
+  dydy= jac([1:5,7:9],[1:5,7:9]);
+  % 4: dy'/dn
+  dydn= zeros(8, size(df,2));
+  dydn(:,bactNodes{b}(1))= jac([1:5,7:9],6);
+  % Concatenate the pieces
+  df= [df, dndy; dydn, dydy];
+end
+
+min(svd(dydy))
 %det(dydy)
-spy(df);
+%spy(df);
 end
