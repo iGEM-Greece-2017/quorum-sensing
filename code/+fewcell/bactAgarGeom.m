@@ -14,11 +14,11 @@ switch length(args)
   case 1
     bs= args{1};
     A= zeros(4,length(bs));
-    l= [2,1].*domainLim;
+    l= [1,1].*domainLim;
     bactCorners= x0 - repmat([bactSize(1),-bactSize(2)]/2, nBact,1);
     % Domain
     edges= bs<=4;
-    if any(edges(:)), A(:,edges)= util.rectangleFun([-domainLim(1),0],l, {bs(edges)}); end
+    if any(edges(:)), A(:,edges)= util.rectangleFun([0,0],l, {bs(edges)}); end
     % Bacteria
     for b= 1:nBact
       lims= [4+bactEdges*(b-1), 4+bactEdges*b];
@@ -39,7 +39,7 @@ switch length(args)
   case 2
     bs= args{1};
     t= args{2};
-    l= [2,1].*domainLim;
+    l= [1,1].*domainLim;
     bactCorners= x0 - repmat([bactSize(1),-bactSize(2)]/2, nBact,1);
     x= zeros(size(t)); y= zeros(size(t));
     if numel(bs) > 1, assert(all(size(bs) == size(t))); end
@@ -48,7 +48,7 @@ switch length(args)
     if any(edges(:))
       tsel= edges;
       if numel(tsel)==1, tsel= 1:length(t); end
-      [x(tsel),y(tsel)]= util.rectangleFun([-domainLim(1),0],l, {bs(edges), t(tsel)});
+      [x(tsel),y(tsel)]= util.rectangleFun([0,0],l, {bs(edges), t(tsel)});
     end
     % Bacteria
     for b= 1:nBact

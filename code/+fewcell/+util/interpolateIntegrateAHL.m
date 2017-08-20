@@ -9,7 +9,7 @@ resolution= params.viz.interpResolution;
 
 % X,Y grid
 if length(resolution)==1, resolution(2)= resolution(1); end
-x= linspace(-zoomDomainLim(1),zoomDomainLim(1), resolution(1));
+x= linspace(0,zoomDomainLim(1), resolution(1));
 y= linspace(0,-zoomDomainLim(2),resolution(2));
 [X,Y]= meshgrid(x,y);
 

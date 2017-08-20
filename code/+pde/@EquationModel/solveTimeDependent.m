@@ -16,17 +16,14 @@ if ~tsecondOrder
 end
 
 [p,e,t] = self.Mesh.meshToPet();
-
-%{ @@@ Custom @@@ %%
-nBact= length(unique(t(4,:)))-1;
-global bactNodes;
-bactNodes= cell(nBact,1);
-%} @@@ Custom @@@ %%
-
 femodel=pde.DynamicDiscretizedPDEModel(self,p,e,t,coefstruct,u0,tlist,tsecondOrder);
-
 %{ @@@ Custom @@@ %%
-femodel.vf= 1;
+  global enableSinglecellEq;
+  global solveInternalParams;
+  global bactNodes;
+  global yyResults;
+  if enableSinglecellEq, femodel.vf= 1; end
+  nBact= length(unique(t(4,:)))-1;
 %} @@@ Custom @@@ %%
 
 if(~femodel.IsSpatialCoefficientsNonlinear)
@@ -87,35 +84,28 @@ end
 
 
 %{ @@@ Custom @@@ %%
-global solveInternalParams;
-odeoptions.Jacobian= [];
-odeoptions.InitialStep= 1e-5; odeoptions.JConstant= 'off';
-odeoptions.AbsTol= [odeoptions.AbsTol*ones(1,length(uu0)), zeros(1,nBact*8)];
-
-nY= nBact*8;  % number of extra variables
-odeoptions.AbsTol(end-(nY-1):end)= repmat(solveInternalParams.AbsTol_y, 1,nBact);
-%odeoptions.AbsTol(end-7:end)= odeoptions.AbsTol(1);
-%odeoptions.AbsTol(end-7:end)= 1e-9;
-uu0= [uu0; repmat(solveInternalParams.y0,nBact,1)];
-
-domainNodes= unique( t(1:3,t(4,:)==1) );
-for b= 1:nBact
-  bactNodes{b}= unique( t(1:3,t(4,:)==b+1) );         % all nodes for elements in bacterium
-  %bactNodes{b}= setdiff(bactNodes{b}, domainNodes);   % strip boundary nodes
-  if isempty(bactNodes{b}), error(['[solveTimeDependent]: no mesh nodes inside bacterium #',num2str(b)]); end
-  fprintf('[solveTimeDependent]: nodes in bact#%d: %d\n', b,length(bactNodes{b}));
-end
+  % ODE solver options
+  odeoptions.Jacobian= [];
+  odeoptions.InitialStep= 1e-5; odeoptions.JConstant= 'off';
+  if enableSinglecellEq
+    nY= nBact*8;  % number of extra variables
+    odeoptions.AbsTol= [odeoptions.AbsTol*ones(1,length(uu0)), zeros(1,nY)];
+    odeoptions.AbsTol(end-(nY-1):end)= repmat(solveInternalParams.AbsTol_y, 1,nBact);
+    uu0= [uu0; repmat(solveInternalParams.y0,nBact,1)];
+  end
+%} @@@ Custom @@@ %%
 [~,uu]=ode15s(fcn,tlist,uu0,odeoptions);
-
-global yyResults;
-for b= 1:nBact
-  % where the y variables for this bacterium start (relative to end)
-  yIdx= (nBact-b+1)*8-1;
-  ahl= mean(uu(:,bactNodes{b}),2);
-  % y variables for this bacterium
-  yyResults{b}= [uu(:,end-yIdx: end-yIdx+4), ahl, uu(:,end-yIdx+5: end-yIdx+7), ahl];
-end
-uu= uu(:,1:end-nY);
+%{ @@@ Custom @@@ %%
+  if enableSinglecellEq
+    for b= 1:nBact
+      % where the y variables for this bacterium start (relative to end)
+      yIdx= (nBact-b+1)*8-1;
+      ahl= mean(uu(:,bactNodes{b}),2);
+      % y variables for this bacterium
+      yyResults{b}= [uu(:,end-yIdx: end-yIdx+4), ahl, uu(:,end-yIdx+5: end-yIdx+7), ahl];
+    end
+    uu= uu(:,1:end-nY);
+  end
 %} @@@ Custom @@@ %%
 
 
