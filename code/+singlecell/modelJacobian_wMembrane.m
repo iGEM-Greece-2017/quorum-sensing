@@ -1,4 +1,4 @@
-function j= modelJacobian_wMembrane(~,y,N0)
+function j= modelJacobian_wMembrane(~,y,N0, growthOn)
 
 [aRkR,aIkI,PR,PI,dmR,dmI,kAHL, ...
  k1,k2,k3,k4,k5,k6,kR,kI,      ...
@@ -7,10 +7,13 @@ function j= modelJacobian_wMembrane(~,y,N0)
  diffusiveLoss,totMembPerm]= singlecell.modelCoeffs(y,N0);
 
 % Growth model calcs
-growth.f= -growth.m/growth.Nmax^growth.m * y(11).^(growth.m-1) * growth.p2;
-growth.f= growth.f + growth.p1 * growth.n * (growth.Nmin^growth.n ./ y(11).^(growth.n+1));
-growth.j= growth.r*growth.p1*growth.p2 + growth.r*y(11).*growth.f;
-growth.j= growth.j/60;    % time multiplier (hour->min)
+growth.f= 0;
+if growthOn
+  growth.f= -growth.m/growth.Nmax^growth.m * y(11).^(growth.m-1) * growth.p2;
+  growth.f= growth.f + growth.p1 * growth.n * (growth.Nmin^growth.n ./ y(11).^(growth.n+1));
+  growth.j= growth.r*growth.p1*growth.p2 + growth.r*y(11).*growth.f;
+  growth.j= growth.j/60;    % time multiplier (hour->min)
+end
 
 j= zeros(11);
 j(1, [1 8 9 11])= [-k5*y(8), -k5*y(1), k6, cellDNA*growth.j];
