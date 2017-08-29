@@ -23,19 +23,19 @@ end
 % Calculate dAHL mesh node coefficients
 % Each node is part of many triangles. Each triangle has an area relative to the bacterium
 % Each node's relative area is the sum of the relative areas of each triangle it is part of
-% divided by the number of nodes for each triangle (3)
+% divided by the number of nodes (among the ones selected) for each triangle
 bactNodeCoeffs= cell(nBact,1);
 assert(strcmp(mesh.GeometricOrder,'linear'));
-nodePerElt= 3;    % because the mesh is linear triangular
 for b= 1:nBact
+  nodes= bactNodes{b};
   selElt= t(4,:)==b+1;
   nodesForeachElt= t(1:3,selElt);
+  nodePerElt= sum( ismember(nodesForeachElt,nodes) );   % number of (selected) nodes foreach elt
   eltRelArea= pdetrg(p,nodesForeachElt)./prod(bactSize);
-  nodes= bactNodes{b};
   nodeRelArea= zeros(length(nodes),1);
   for n= 1:length(nodes)
     nodePartofElt= any(nodesForeachElt == nodes(n));
-    nodeRelArea(n)= sum(eltRelArea(nodePartofElt))./nodePerElt;
+    nodeRelArea(n)= sum(eltRelArea(nodePartofElt)./nodePerElt(nodePartofElt));
   end
   bactNodeCoeffs{b}= bactRingDensity(b).*nodeRelArea;
 end

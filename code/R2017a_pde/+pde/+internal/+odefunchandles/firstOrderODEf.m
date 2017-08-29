@@ -106,7 +106,7 @@ for i= 1:size(u,2)
   f(:,i)= [-K*u(1:end-nBact*8,i)+F; zeros(nBact*8,1)];
 
   for b= 1:nBact
-    ahl= mean(u(bactNodes{b},i));
+    ahl= sum(u(bactNodes{b},i).*bactNodeCoeffs{b});
     yIdx= (nBact-b+1)*8-1;    % where the y variables for this bacterium start (relative to end)
     yBact= [u(end-yIdx: end-yIdx+4,i); ahl; u(end-yIdx+5: end-yIdx+7,i); 0;1];   % y variables for this bacterium
 
