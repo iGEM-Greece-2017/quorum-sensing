@@ -22,6 +22,7 @@ femodel=pde.DynamicDiscretizedPDEModel(self,p,e,t,coefstruct,u0,tlist,tsecondOrd
   global solveInternalParams;
   global bactNodes;
   global yyResults;
+  
   if enableSinglecellEq, femodel.vf= 1; end
   nBact= length(unique(t(4,:)))-1;
 %} @@@ Custom @@@ %%
@@ -85,6 +86,7 @@ end
 
 %{ @@@ Custom @@@ %%
   % ODE solver options
+  odeoptions.Vectorized= 'on';
   odeoptions.Jacobian= [];
   odeoptions.InitialStep= 1e-5; odeoptions.JConstant= 'off';
   if enableSinglecellEq
