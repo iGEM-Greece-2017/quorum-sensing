@@ -19,6 +19,7 @@ timePoints= min(params.viz.timePoints,length(result.SolutionTimes));
 t= floor(linspace(startTimeIdx,stopTimeIdx, timePoints));
 u= zeros([size(X),length(t)]);
 total_u= zeros([1,length(t)]);
+if ~params.viz.figID(1), return; end
 %defaultAbsTol= 1e-1;
 i= 1;
 resultSlice= cell(timePoints,1);

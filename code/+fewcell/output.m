@@ -1,4 +1,4 @@
-function output(model,result,tlist, AHLDistrib,x,y,interp_t,totalAHL,figID,dynamicScaling)
+function output(model,result,tlist, AHLDistrib,x,y,interp_t,totalAHL,params)
 
 % Printed results
 % [nM]=[nmol]/L => [mmol]= [nM]*[mm^3]
@@ -8,24 +8,25 @@ fprintf('Nodal max [AHL] at t=%.1fmin: %.3g [nM]\n', interp_t(end), max(result.N
 
 % Distribution plot
 global distribAHL_interp_graphics;
-if figID(1)>0
+if params.figID(1)>0
   distribAHL_interp_graphics= []; distribAHL_interp_graphics.first= true;
   for t= 1:length(interp_t)
-    fewcell.viz.plot(AHLDistrib,x,y,interp_t,totalAHL,figID(1),t,dynamicScaling);
+    fewcell.viz.plot(AHLDistrib,x,y,interp_t,totalAHL,params.figID(1),t,params.dynamicScaling);
   end
 end
 
 % Singlecell plot
 global yyResults;
-if figID(2)>0
-  singlecell.viz.plot(tlist, yyResults{1}, 1,figID(2));
+if params.figID(2)>0
+  singlecell.viz.plot(tlist, yyResults{1}, params.figID(2),params.logscaleSinglecell);
 end
 
 % Nodal solution
-if figID(3)>0
-  figure(figID(3));
-  pdeplot(model,'XYData',result.NodalSolution(:,end),'Mesh','on','colormap','hot');
+if params.figID(3)>0
+  figure(params.figID(3)); clf;
+  pdeplot(model,'XYData',result.NodalSolution(:,end),...
+    'FlowData',[result.XGradients,result.YGradients], 'Mesh','on','colormap','jet');
   nodalPlot= gca;
-  nodalPlot.XLim= [0 0.03];
-  nodalPlot.YLim= [-0.015 0];
+  nodalPlot.XLim= [0 params.domLim(1)];
+  nodalPlot.YLim= [-params.domLim(2) 0];
 end
