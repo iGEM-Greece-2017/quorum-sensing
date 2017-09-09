@@ -30,7 +30,8 @@ switch length(args)
         % TODO: The transformation (amount added) should be parameterized by the final param
         %   value returned by each geometry
         A(1:2,edges)= A(1:2,edges) +2*sum(l)+(b-1)*bactMaxt;
-        A(3,edges)= b+1;  % Assign face numbers
+        %A(3,edges)= b+1;  % Assign face numbers
+        A(3,edges)= 0;  % Assign face numbers
         A(4,edges)= 1;
       end
     end

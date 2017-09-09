@@ -2,11 +2,12 @@ function result= solveProblem(model,tlist,params)
 
 model.SolverOptions.AbsoluteTolerance= params.solve.AbsTol;
 model.SolverOptions.RelativeTolerance= params.solve.RelTol;
-%model.SolverOptions.ResidualTolerance= params.RelTol;
+model.SolverOptions.ResidualTolerance= params.solve.RelTol;
 model.SolverOptions.MaxIterations= 40;
 model.SolverOptions.MinStep= params.solve.FeatureSize/10;
 model.SolverOptions.ReportStatistics= 'on';
 
+global bactRingDensity;
 bactRingDensity= fewcell.util.bactRingDensity(params.g.bactCenters(:,1),params.g.bactSize, params.g.lateralSpacing);
 totalBacteria= round(sum(bactRingDensity));
 fprintf('Total bacteria: %d\n', totalBacteria);

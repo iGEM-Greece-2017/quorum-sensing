@@ -2,34 +2,32 @@ function makeBactNodeCoeffs(mesh,bactSize,bactRingDensity)
 % Find the mesh nodes that correspond to each bacterium in the geometry and calculate the 
 % coefficient that translates the singlecell dAHL into a change for the corresponding mesh nodes
 
+global bacterialEdges;
 global bactNodes;
 global bactNodeCoeffs;
-[p,~,t]= meshToPet(mesh);
+[p,e,t]= meshToPet(mesh);
 
 % Find the mesh nodes that correspond to each bacterium in the geometry
-nBact= length(unique(t(4,:)))-1;
+nBact= length(bacterialEdges);
 bactNodes= cell(nBact,1);
 % Find bacterial nodes
-domainNodes= unique( t(1:3,t(4,:)==1) );
 for b= 1:nBact
-  bactNodes{b}= unique( t(1:3,t(4,:)==b+1) );         % all nodes for elements in bacterium
-  internalNodes= setdiff(bactNodes{b}, domainNodes);
-  % strip boundary nodes
-  if ~isempty(internalNodes), bactNodes{b}= internalNodes; end
+  % all nodes for edges on bacterium
+  bactNodes{b}= unique( e(1,ismember(e(5,:),bacterialEdges{b})) );
   if isempty(bactNodes{b}), error(['No mesh nodes inside bacterium #',num2str(b)]); end
   fprintf('Nodes in bact#%d: %d\n', b,length(bactNodes{b}));
 end
 
 % Calculate dAHL mesh node coefficients
-% Each node is part of many triangles. Each triangle has an area relative to the bacterium
-% Each node's relative area is the sum of the relative areas of each triangle it is part of
-% divided by the number of nodes (among the ones selected) for each triangle
+% Each node is part of many edges. Each edge has a length relative to the bacterium's perim
+% Each node's relative length is the sum of the relative lengths of each edge it is part of
+% divided by the number of nodes for each edge (2)
 bactNodeCoeffs= cell(nBact,1);
 assert(strcmp(mesh.GeometricOrder,'linear'));
 for b= 1:nBact
   nodes= bactNodes{b};
-  selElt= t(4,:)==b+1;
-  nodesForeachElt= t(1:3,selElt);
+  selEdge= ismember(e(5,:),bacterialEdges{b});
+  nodesForeachElt= t(1:3,selEdge);
   nodePerElt= sum( ismember(nodesForeachElt,nodes) );   % number of (selected) nodes foreach elt
   eltRelArea= pdetrg(p,nodesForeachElt)./prod(bactSize);
   nodeRelArea= zeros(length(nodes),1);

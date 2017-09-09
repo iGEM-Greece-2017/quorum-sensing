@@ -23,7 +23,7 @@ femodel=pde.DynamicDiscretizedPDEModel(self,p,e,t,coefstruct,u0,tlist,tsecondOrd
   global bactNodes;
   global yyResults;
   
-  if enableSinglecellEq, femodel.vf= 1; end
+  %if enableSinglecellEq, femodel.vf= 1; end
   nBact= length(unique(t(4,:)))-1;
 %} @@@ Custom @@@ %%
 

@@ -29,11 +29,15 @@ domainVolume= pi*p.g.domainLim(1).^2 * p.g.domainLim(2);  % domain is actually a
 model= createpde(1);
 geometryFromEdges(model,geometryFun);
 %% Boundaries
+global bacterialEdges;
 applyBoundaryCondition(model, 'neumann', 'Edge',1,'g',0,'q',0);
-%applyBoundaryCondition(model, 'dirichlet', 'Edge',1,'u',0);
 applyBoundaryCondition(model, 'neumann', 'Edge',2:4,'g',0,'q',0);
 for b=1:nBact
-  applyBoundaryCondition(model,'neumann', 'Edge',(1:4)+4+(b-1)*4,'g',0,'q',@(r,s)p.c.bactMperm*r.x);
+  bacterialEdges{b}= (1:4)+4+(b-1)*4;
+  %membranePerm= @(r,s)p.c.bactMperm*r.x;
+  %applyBoundaryCondition(model,'neumann', 'Edge',(1:4)+4+(b-1)*4,'g',0,'q',membranePerm);
+  membU= @(r,s)(1+s.u.^0.1).*r.x;
+  applyBoundaryCondition(model, 'dirichlet', 'Edge',bacterialEdges{b},'h',1,'r',membU);
 end
 %% Coefficients
 % The del operator is expressed in cylindrical coordinates. du/dθ=0 due to symmetry, so:
@@ -45,18 +49,6 @@ dCoeff= @(r,s)r.x;
 cCoeff= @(r,s)p.c.c_agar*r.x;
 aCoeff= @(r,s)p.c.d_AHL*r.x;
 specifyCoefficients(model,'Face',1,'m',0,'d',dCoeff,'c',cCoeff,'a',aCoeff,'f',0);
-for b=1:nBact
-  %bactProd= @(r,s)(10*s.u+(1e1*(s.time<2)));
-  %bactProd= @(r,s)(1*(s.time==tstart));
-  %bactProd= @(r,s)1e4*(r.x+s.u);
-  %bactProd= 1e2;
-  bactProd= 0;  % production through singlecell eqs
-  dCoeff= @(r,s)r.x;
-  cCoeff= @(r,s)p.c.c_cytoplasm*r.x;
-  aCoeff= @(r,s)p.c.d_AHL*r.x;
-  specifyCoefficients(model,'Face',b+1,...
-    'm',0,'d',dCoeff,'c',cCoeff,'a',aCoeff,'f',bactProd);
-end
 %% Initial conditions
 setInitialConditions(model,0);
 %% Mesh

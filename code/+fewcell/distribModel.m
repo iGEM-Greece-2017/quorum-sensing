@@ -9,13 +9,13 @@ clear params;
 runID= randi(2147483644);
 global enableSinglecellEq; enableSinglecellEq= true;
 % time
-params.t.tstop= 60*0.5;   % min
+params.t.tstop= 60*1;   % min
 params.t.tstart= 0;
-params.t.timePoints= 100;
+params.t.timePoints= 30;
 % coefficients
 %params.c.c_agar= 7.1e-5*60;                 % [mm^2/min]
-params.c.c_agar= 25e-5*60;                 % [mm^2/min]
-params.c.c_cytoplasm= 35e-5*60;            % [mm^2/min]
+params.c.c_agar= 30e-5*60;
+params.c.c_cytoplasm= 50e-5*60;            % [mm^2/min]
 params.c.d_AHL= 7e-5;                      % [1/min]
 params.c.bactMperm= 10;                    % [1/min]
 % geometry
@@ -28,7 +28,7 @@ params.g.bactSize= 1e-3*[1,2.164];
 params.g.domainLim= [1.7,.551];     % xs
 % mesh
 params.m.Hgrad= 1.4;
-params.m.HmaxCoeff= 1/20;
+params.m.HmaxCoeff= 1/10;
 % init
 params.solve.y0= [1.6;0;0;0;0; 0;0;0];  % [nM]
 % solve
@@ -37,8 +37,8 @@ params.solve.AbsTol= 1e-2;    % for diffusion nodes
 params.solve.RelTol= 1e-4;
 params.solve.FeatureSize= min(params.g.bactSize)/4;
 % viz
-params.viz.showMesh= false;
-params.viz.domLim= [0.06,0.03];
+params.viz.showMesh= true;
+params.viz.domLim= [0.02,0.01];
 params.viz.zoominFactor= params.g.domainLim./params.viz.domLim;
 params.viz.interpResolution= 130;
 params.viz.integrateAbstol= 1;
