@@ -20,13 +20,12 @@ t= floor(linspace(startTimeIdx,stopTimeIdx, timePoints));
 u= zeros([size(X),length(t)]);
 total_u= zeros([1,length(t)]);
 if ~params.viz.figID(1), return; end
-%defaultAbsTol= 1e-1;
-i= 1;
 resultSlice= cell(timePoints,1);
 for time= t
   resultSlice{time}= util.sliceResult(model,result,time);
 end
-for time= t
+parfor i= 1:length(t)
+  time= t(i);
   ufun= @(x,y) util.nan0(reshape(interpolateSolution(resultSlice{time}, x,y), size(x)));
   u(:,:,i)= ufun(X,Y);
   % rectangular domain (r,z) & CYLINDRICAL coords
@@ -34,7 +33,6 @@ for time= t
   %absTol= quantile(uSlice(:),0.1); if absTol==0, absTol= defaultAbsTol; end
   absTol= params.viz.integrateAbstol;
   total_u(i)= fewcell.util.integrate(ufun,params.g.domainLim,absTol);
-  i= i+1;
 end
 t= result.SolutionTimes(t);   % time idx -> real time
 toc;
