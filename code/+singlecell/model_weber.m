@@ -3,7 +3,7 @@ function dy= model_weber(t,y, growthOn, diffusionOn)
 [Kd1,k1_,Kd2,k2_,kA,Kdlux,klux_,kR,kI,        ...
  pR,pI,alphaR,alphaI,dA,dC2,dC,dR,dI,dmR,dmI, ...
  D,dilution,                         ...
- growth,diffusiveLossRate,colonyD]= singlecell.modelCoeffs_weber(y,growthOn,diffusionOn);
+ growth,colonyD]= singlecell.modelCoeffs_weber(y,growthOn,diffusionOn);
 dy= zeros(11,1);
 
 %y(1)=DNA
@@ -26,7 +26,7 @@ dy(6)= k1_*y(7) -k1_/Kd1*y(6)*y(5) +kA*y(4) -D*(y(6)-y(10)) -(growth.divRate+dA)
 dy(7)= -k1_*y(7) +k1_/Kd1*y(6)*y(5) -2*k2_/Kd2*y(7).^2 +2*k2_*y(8) -(growth.divRate+dC)*y(7);
 dy(8)= k2_/Kd2*y(7).^2 -k2_*y(8) -klux_/Kdlux*y(8)*y(1) +klux_*y(9) -(growth.divRate+dC2)*y(8);
 dy(9)= klux_/Kdlux*y(8)*y(1) -klux_*y(9) -growth.divRate*y(9);
-dy(10)= dilution*colonyD*(y(6)-y(10)) -(diffusiveLossRate+dA)*y(10);
+dy(10)= dilution*colonyD*(y(6)-y(10)) -dA*y(10);
 dy(11)= growth.dN;
 
 

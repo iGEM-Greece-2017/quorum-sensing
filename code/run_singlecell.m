@@ -1,12 +1,13 @@
 %% Runs the single cell model
-t= linspace(0,60*15,400);
+t= linspace(0,60*16,400);
 first= true;
-for N0= 10
+for N0= 1
   if ~first, pause; end
   fprintf('N0=%d\n',N0);
   y0= [1.5347;0;0;0;0;0;0;0;0;0;N0];
   tic;
-  y= singlecell.run_weber(y0,t,true);
+  y= singlecell.run_weber(y0,t,true,true);
+  assert(length(y)==length(t));
   toc;
 
   if size(y,2)==10, y(:,10)= y(:,6); end
