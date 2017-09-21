@@ -2,17 +2,15 @@ function result= solveProblem(model,tlist,params)
 
 model.SolverOptions.AbsoluteTolerance= params.solve.AbsTol;
 model.SolverOptions.RelativeTolerance= params.solve.RelTol;
-%model.SolverOptions.ResidualTolerance= params.RelTol;
+model.SolverOptions.ResidualTolerance= params.solve.RelTol;
 model.SolverOptions.MaxIterations= 40;
-model.SolverOptions.MinStep= params.solve.FeatureSize/10;
+model.SolverOptions.MinStep= params.solve.FeatureSize/20;
 model.SolverOptions.ReportStatistics= 'on';
 
-bactRingDensity= fewcell.util.bactRingDensity(params.g.bactCenters(:,1),params.g.bactSize, params.g.lateralSpacing);
-totalBacteria= round(sum(bactRingDensity));
-fprintf('Total bacteria: %d\n', totalBacteria);
+%    ~~~ NOT ANYMORE ~~~
 % Defines the global variable <bactNodeCoeffs>, determining how the singlecell results 
 %   affect the mesh nodes
-fewcell.util.makeBactNodeCoeffs(model.Mesh,params.g.bactSize,bactRingDensity);
+fewcell.util.makeBactNodeCoeffs(model.Mesh);
 
 % pass params to <solveTimeDependent.m> without changing all the functions in between
 global solveInternalParams;
@@ -21,7 +19,9 @@ solveInternalParams.AbsTol_y= params.solve.AbsTol_y;
 tic;
 result= solvepde(model,tlist);
 toc;
+cAHL= result.NodalSolution([5,2],:)';
 global yyResults;
 for b= 1:length(yyResults)
-  yyResults{b}= [yyResults{b},totalBacteria*ones(length(tlist),1)];
+  yyResults{b}(:,[6,10])= cAHL;
+  yyResults{b}= [yyResults{b},ones(length(tlist),1)];
 end

@@ -1,4 +1,4 @@
-function [p,model,tlist,domainVolume]= problemSetup(p,plotMesh)   %param
+function [p,model,tlist,domainVolume,bactRingDensity]= problemSetup(p,plotMesh)   %param
 % Setup all elements of the pde problem
 
 %% Time
@@ -25,6 +25,11 @@ nBact= size(p.g.bactCenters,1);
 geometryFun= @(varargin)fewcell.bactAgarGeom(...
                 p.g.bactCenters,p.g.bactSize, p.g.domainLim, varargin);
 domainVolume= pi*p.g.domainLim(1).^2 * p.g.domainLim(2);  % domain is actually a cylinder
+bactVolume= pi/4*p.g.bactSize(1).^2 * p.g.bactSize(2);
+
+bactRingDensity= fewcell.util.bactRingDensity(p.g.bactCenters(:,1),p.g.bactSize, p.g.lateralSpacing);
+totalBacteria= round(sum(bactRingDensity));
+fprintf('Total bacteria: %d\n', totalBacteria);
 %% PDE
 model= createpde(1);
 geometryFromEdges(model,geometryFun);
@@ -32,9 +37,6 @@ geometryFromEdges(model,geometryFun);
 applyBoundaryCondition(model, 'neumann', 'Edge',1,'g',0,'q',0);
 %applyBoundaryCondition(model, 'dirichlet', 'Edge',1,'u',0);
 applyBoundaryCondition(model, 'neumann', 'Edge',2:4,'g',0,'q',0);
-for b=1:nBact
-  applyBoundaryCondition(model,'neumann', 'Edge',(1:4)+4+(b-1)*4,'g',0,'q',@(r,s)p.c.bactMperm*r.x);
-end
 %% Coefficients
 % The del operator is expressed in cylindrical coordinates. du/dθ=0 due to symmetry, so:
 %    u' - del*( c del(u)) +  au =  f
@@ -49,13 +51,13 @@ for b=1:nBact
   %bactProd= @(r,s)(10*s.u+(1e1*(s.time<2)));
   %bactProd= @(r,s)(1*(s.time==tstart));
   %bactProd= @(r,s)1e4*(r.x+s.u);
-  %bactProd= 1e2;
-  bactProd= 0;  % production through singlecell eqs
+  % Spatial coefficient for production through singlecell eqs
+  %bactProd= @(r,s)2*pi*r.x*p.g.bactSize(1)*p.g.bactSize(2)./bactVolume;
+  bactProd= @(r,s)r.x;
   dCoeff= @(r,s)r.x;
   cCoeff= @(r,s)p.c.c_cytoplasm*r.x;
-  aCoeff= @(r,s)p.c.d_AHL*r.x;
   specifyCoefficients(model,'Face',b+1,...
-    'm',0,'d',dCoeff,'c',cCoeff,'a',aCoeff,'f',bactProd);
+    'm',0,'d',dCoeff,'c',cCoeff,'a',0,'f',bactProd);
 end
 %% Initial conditions
 setInitialConditions(model,0);
@@ -68,11 +70,11 @@ fprintf('Total mesh nodes: %d\n', totalMeshNodes);
 % Plot mesh
 if plotMesh
   figure(2); clf;
-  pdeplot(model,'NodeLabels','on');
+  pdeplot(model,'NodeLabels','off');
   %pdegplot(geometryFun, 'EdgeLabels','on','FaceLabels','on');
   axis tight;
   meshPlot= gca;
-  meshPlot.XLim= [0 0.02];
-  meshPlot.YLim= [-0.01 0];
+  meshPlot.XLim= [0 p.viz.domLim(1)];
+  meshPlot.YLim= [-p.viz.domLim(2) 0];
   drawnow;
 end

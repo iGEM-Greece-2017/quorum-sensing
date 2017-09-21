@@ -11,7 +11,10 @@ global distribAHL_interp_graphics;
 if params.figID(1)>0
   distribAHL_interp_graphics= []; distribAHL_interp_graphics.first= true;
   for t= 1:length(interp_t)
+    tic;
     fewcell.viz.plot(AHLDistrib,x,y,interp_t,totalAHL,params.figID(1),t,params.dynamicScaling);
+    pauseTime= 1/22-toc;
+    if pauseTime>0, pause(pauseTime); end
   end
 end
 
@@ -24,8 +27,8 @@ end
 % Nodal solution
 if params.figID(3)>0
   figure(params.figID(3)); clf;
-  pdeplot(model,'XYData',result.NodalSolution(:,end),...
-    'FlowData',[result.XGradients,result.YGradients], 'Mesh','on','colormap','jet');
+  pdeplot(model,'XYData',result.NodalSolution(:,end), 'ZData',result.NodalSolution(:,end), 'Mesh','on','colormap','jet');
+  view(0,90);
   nodalPlot= gca;
   nodalPlot.XLim= [0 params.domLim(1)];
   nodalPlot.YLim= [-params.domLim(2) 0];

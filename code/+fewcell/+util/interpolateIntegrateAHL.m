@@ -19,7 +19,7 @@ timePoints= min(params.viz.timePoints,length(result.SolutionTimes));
 t= floor(linspace(startTimeIdx,stopTimeIdx, timePoints));
 u= zeros([size(X),length(t)]);
 total_u= zeros([1,length(t)]);
-if ~params.viz.figID(1), return; end
+if ~params.viz.figID(1), t= result.SolutionTimes(t); return; end
 resultSlice= cell(timePoints,1);
 for time= t
   resultSlice{time}= util.sliceResult(model,result,time);
@@ -36,3 +36,4 @@ parfor i= 1:length(t)
 end
 t= result.SolutionTimes(t);   % time idx -> real time
 toc;
+end
