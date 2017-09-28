@@ -1,10 +1,4 @@
-function dy= model_weber(t,y, growthOn, diffusionOn)
-
-[Kd1,k1_,Kd2,k2_,kA,Kdlux,klux_,kR,kI,        ...
- pR,pI,alphaR,alphaI,dA,dC2,dC,dR,dI,dmR,dmI, ...
- D,dilution,                         ...
- growth,colonyD]= singlecell.modelCoeffs_weber(y,growthOn,diffusionOn);
-dy= zeros(11,1);
+function dy= model_weber(t,y, p,growth)
 
 %y(1)=DNA
 %y(2)=mRNALuxR
@@ -17,17 +11,17 @@ dy= zeros(11,1);
 %y(9)=DNALuxRAHL2
 %y(10)=AHLext
 %y(11)=bacteria count
-dy(1)= -klux_/Kdlux*y(8)*y(1) +klux_*y(9) +growth.divRate*(y(1)+y(9)) -growth.divRate*y(1);
-dy(2)= alphaR*kR*y(1) +kR*y(9) -(growth.divRate+dmR)*y(2);
-dy(3)= alphaI*kI*y(1) +kI*y(9) -(growth.divRate+dmI)*y(3);
-dy(4)= pI*y(3) -(growth.divRate+dI)*y(4);
-dy(5)= -k1_/Kd1*y(6)*y(5) +k1_*y(7)  +pR*y(2) -(growth.divRate+dR)*y(5);
-dy(6)= k1_*y(7) -k1_/Kd1*y(6)*y(5) +kA*y(4) -D*(y(6)-y(10)) -(growth.divRate+dA)*y(6);
-dy(7)= -k1_*y(7) +k1_/Kd1*y(6)*y(5) -2*k2_/Kd2*y(7).^2 +2*k2_*y(8) -(growth.divRate+dC)*y(7);
-dy(8)= k2_/Kd2*y(7).^2 -k2_*y(8) -klux_/Kdlux*y(8)*y(1) +klux_*y(9) -(growth.divRate+dC2)*y(8);
-dy(9)= klux_/Kdlux*y(8)*y(1) -klux_*y(9) -growth.divRate*y(9);
-dy(10)= dilution*colonyD*(y(6)-y(10)) -dA*y(10);
-dy(11)= growth.dN;
+dy(10,:)= p.dilution*p.colonyD*(y(6,:)-y(10,:)) -p.dA*y(10,:);
+dy(1,:)= -p.klux_/p.Kdlux*y(8,:).*y(1,:) +p.klux_*y(9,:) +growth.divRate*(y(1,:)+y(9,:)) -growth.divRate*y(1,:);
+dy(2,:)= p.alphaR*p.kR*y(1,:) +p.kR*y(9,:) -(growth.divRate+p.dmR)*y(2,:);
+dy(3,:)= p.alphaI*p.kI*y(1,:) +p.kI*y(9,:) -(growth.divRate+p.dmI)*y(3,:);
+dy(4,:)= p.pI*y(3,:) -(growth.divRate+p.dI)*y(4,:);
+dy(5,:)= -p.k1_/p.Kd1*y(6,:).*y(5,:) +p.k1_*y(7,:)  +p.pR*y(2,:) -(growth.divRate+p.dR)*y(5,:);
+dy(6,:)= p.k1_*y(7,:) -p.k1_/p.Kd1*y(6,:).*y(5,:) +p.kA*y(4,:) -p.D*(y(6,:)-y(10,:)) -(growth.divRate+p.dA)*y(6,:);
+dy(7,:)= -p.k1_*y(7,:) +p.k1_/p.Kd1*y(6,:).*y(5,:) -2*p.k2_/p.Kd2*y(7,:).^2 +2*p.k2_*y(8,:) -(growth.divRate+p.dC)*y(7,:);
+dy(8,:)= p.k2_/p.Kd2*y(7,:).^2 -p.k2_*y(8,:) -p.klux_/p.Kdlux*y(8,:).*y(1,:) +p.klux_*y(9,:) -(growth.divRate+p.dC2)*y(8,:);
+dy(9,:)= p.klux_/p.Kdlux*y(8,:).*y(1,:) -p.klux_*y(9,:) -growth.divRate*y(9,:);
+dy(11,:)= growth.dN;
 
 
 % Proteins match up to mRNA numbers! Ref:

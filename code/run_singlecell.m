@@ -6,7 +6,7 @@ for N0= 1
   fprintf('N0=%d\n',N0);
   y0= [1.5347;0;0;0;0;0;0;0;0;0;N0];
   tic;
-  y= singlecell.run_weber(y0,t,true,true);
+  y= singlecell.run_weber(y0,t,false,true);
   assert(length(y)==length(t));
   toc;
 
