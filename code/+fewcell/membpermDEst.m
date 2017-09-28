@@ -8,12 +8,12 @@ prodDist.t= []; prodDist.F= []; prodDist.femF= [];
 
 %% Parameters
 tlist= linspace(0, 60*16, 400);
-params.g.bactSize= [1,2.164]*1e-3;
 params.g.membW= 0.2e-3;
-%params.g.domainLim= [1,2]*1e-2;
-params.g.domainLim= [20,10]*1e-3 *1;
+params.g.bactSize= [1,2.164]*1e-3;
+%params.g.bactSize= [.8,3.38125]*1e-3;    % constant volume (only change aspect ratio
+params.g.domainLim= params.g.bactSize*5;
 params.c.high= 1e-3;
-params.c.wall= 1e-3;%2e-6;
+params.c.wall= 1e-6;
 params.c.dAHL= .001;
 
 params.viz.domLim= params.g.domainLim/2; params.viz.zoominFactor= params.g.domainLim./params.viz.domLim;
@@ -45,15 +45,15 @@ dCoeff= @(r,s)r.x;
 aCoeff= @(r,s)params.c.dAHL*r.x;
 % Test relationship between nodal F and analytical production (linear)
 %prodCoeff= @(r,s) (1e2*(s.time<1)+s.time*1e2*(s.time>=1))*ones(size(s.u));
-prodCoeff= @(r,s)1*r.x;    % calibrates nodal coefficients
+prodCoeff= @(r,s)r.x;    % calibrates nodal coefficients
 specifyCoefficients(model,'Face',1,'m',0,'d',dCoeff,'c',@(r,s)r.x*params.c.high,'a',aCoeff,'f',0);     %dom
 specifyCoefficients(model,'Face',2,'m',0,'d',dCoeff,'c',@(r,s)r.x*params.c.high,'a',0,'f', prodCoeff);    %bact
 specifyCoefficients(model,'Face',3,'m',0,'d',dCoeff,'c',@(r,s)r.x*params.c.wall,'a',aCoeff,'f',0);     %memb
 
 setInitialConditions(model,0);
 
-generateMesh(model,'MesherVersion','R2013a', 'Jiggle','minimum','JiggleIter',50,...
-  'Hgrad',1.3, 'Hmax',params.g.domainLim(1)/40);
+generateMesh(model,'MesherVersion','R2013a','GeometricOrder','linear', 'Jiggle','minimum','JiggleIter',50,...
+  'Hgrad',1.01, 'Hmax',params.g.domainLim(1)/25);
 totalMeshNodes= size(model.Mesh.Nodes,2);
 fprintf('Total mesh nodes: %d\n', totalMeshNodes);
 figure(6); clf; pdeplot(model, 'NodeLabels','off'); drawnow;
@@ -63,18 +63,17 @@ fewcell.util.makeBactNodeCoeffs(model.Mesh,1);
 
 bactArea= prod(params.g.bactSize)/4;
 bactVol= (params.g.bactSize(1)/2)^2*pi*params.g.bactSize(2);
-global bactWallDilution; bactWallDilution= 1;
 
-model.SolverOptions.AbsoluteTolerance= 1e-10;
-model.SolverOptions.RelativeTolerance= 1e-6;
-model.SolverOptions.ResidualTolerance= 1e-6;
+model.SolverOptions.AbsoluteTolerance= 1e-8;
+model.SolverOptions.RelativeTolerance= 1e-5;
+model.SolverOptions.ResidualTolerance= 1e-5;
 model.SolverOptions.MaxIterations= 40;
 model.SolverOptions.MinStep= params.g.membW/20;
 model.SolverOptions.ReportStatistics= 'on';
 
 global solveInternalParams;
 solveInternalParams.y0= [1.5347;0;0;0;0; 0;0;0];
-solveInternalParams.AbsTol_y= [1e-5,1e-6,1e-5,1e-3,1e-3,  1e-6,1e-6,1e-7]*1e-3;
+solveInternalParams.AbsTol_y= [1e-5,1e-6,1e-5,1e-3,1e-3,  1e-6,1e-6,1e-7]*1e-1;
 tic;
 result= solvepde(model,tlist);
 toc;

@@ -24,7 +24,8 @@ femodel=pde.DynamicDiscretizedPDEModel(self,p,e,t,coefstruct,u0,tlist,tsecondOrd
   global yyResults;
   
   if enableSinglecellEq, femodel.vf= 1; end
-  nBact= length(bactNodes);
+  %nBact= length(bactNodes);
+  nBact= size(bactNodes,2);
 %} @@@ Custom @@@ %%
 
 if(~femodel.IsSpatialCoefficientsNonlinear)
@@ -102,7 +103,7 @@ end
     for b= 1:nBact
       % where the y variables for this bacterium start (relative to end)
       yIdx= (nBact-b+1)*8-1;
-      ahl= mean(uu(:,bactNodes{b}),2);
+      ahl= mean(uu(:,bactNodes(:,b)),2);
       %ahl= zeros(length(tlist),1);
       % y variables for this bacterium
       yyResults{b}= [uu(:,end-yIdx: end-yIdx+4), ahl, uu(:,end-yIdx+5: end-yIdx+7), ahl];

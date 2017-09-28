@@ -33,7 +33,8 @@ m=femodel.B'*femodel.Mass*femodel.B;
 global enableSinglecellEq;
 global bactNodes;
 if enableSinglecellEq
-  nBact= length(bactNodes);
+  %nBact= length(bactNodes);
+  nBact= size(bactNodes,2);
   m= [m; zeros(nBact*8,size(m,2))];
   m= [m, [zeros(size(m,2),nBact*8); eye(nBact*8)]];
 end
