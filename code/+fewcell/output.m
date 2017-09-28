@@ -6,9 +6,10 @@ fprintf('Final total AHL at t=%.1fmin: %.3g [fmol]\n', interp_t(end), totalAHL(e
 fprintf('Final max [AHL] at t=%.1fmin: %.3g [nM]\n', interp_t(end), max(max(AHLDistrib(:,:,end))));
 fprintf('Nodal max [AHL] at t=%.1fmin: %.3g [nM]\n', interp_t(end), max(result.NodalSolution(:,end)));
 
+global enableGraphics;
 % Distribution plot
 global distribAHL_interp_graphics;
-if params.figID(1)>0
+if params.figID(1)>0 && enableGraphics
   distribAHL_interp_graphics= []; distribAHL_interp_graphics.first= true;
   for t= 1:length(interp_t)
     tic;
@@ -20,12 +21,12 @@ end
 
 % Singlecell plot
 global yyResults;
-if params.figID(2)>0
+if params.figID(2)>0 && enableGraphics
   singlecell.viz.plot(tlist, yyResults{1}, params.figID(2),params.logscaleSinglecell);
 end
 
 % Nodal solution
-if params.figID(3)>0
+if params.figID(3)>0 && enableGraphics
   figure(params.figID(3)); clf;
   pdeplot(model,'XYData',result.NodalSolution(:,end), 'ZData',result.NodalSolution(:,end), 'Mesh','on','colormap','jet');
   view(0,90);

@@ -3,10 +3,11 @@ function makeBactNodeCoeffs(mesh,nBact)
 % coefficient that translates the singlecell dAHL into a change for the corresponding mesh nodes
 
 global bactNodes;
+global bactNodeIdx;
 global bactNodesEqulength;
 [p,~,t]= meshToPet(mesh);
 
-printPerBact= nBact < 15;
+printPerBact= nBact < 9;
 faceIdx= 4;
 if strcmp(mesh.GeometricOrder, 'quadratic'), faceIdx= 7; end
 
@@ -37,6 +38,13 @@ for b=1:nBact
   if printPerBact, fprintf('Nodes in bact#%d: %d\n', b,nnz(bactNodes(:,b))); end
 end
 bactNodesEqulength= length(unique(sum(bactNodes,1))) == 1;
+
+bactNodeIdx= [];
+if bactNodesEqulength
+  fprintf('[makeBactNodeCoeffs]: All bacteria have the same number of nodes. Optimization enabled\n');
+  [bactNodeIdx,~]= find(bactNodes);
+  bactNodeIdx= reshape(bactNodeIdx, [], nBact);
+end
 
 if ~printPerBact
   bactNodeN= full(sum(bactNodes,1));

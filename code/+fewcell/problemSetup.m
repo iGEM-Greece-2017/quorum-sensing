@@ -83,7 +83,8 @@ fprintf('Total mesh nodes: %d\n', totalMeshNodes);
 fprintf('Total equations: %d\n', totalMeshNodes + nBact*8);
 
 % Plot mesh
-if plotMesh
+global enableGraphics
+if plotMesh && enableGraphics
   figure(2); clf;
   pdeplot(model,'NodeLabels','off');
   %pdegplot(model, 'EdgeLabels','on','FaceLabels','on');

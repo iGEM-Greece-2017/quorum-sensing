@@ -26,3 +26,5 @@ for b= 1:length(yyResults)
   yyResults{b}(:,[6,10])= cAHL;
   yyResults{b}= [yyResults{b},ones(length(tlist),1)];
 end
+
+save('data/tmpresults.mat', 'params','model','result','yyResults');

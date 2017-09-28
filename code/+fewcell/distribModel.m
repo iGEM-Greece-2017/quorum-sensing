@@ -9,9 +9,9 @@ clear params;
 % Molarity: nM, Time: min, Length: mm, Quantity: fmol (nM*mm^3)
 runID= randi(2147483644);
 global enableSinglecellEq; enableSinglecellEq= true;
-global bactWallDilution; bactWallDilution= 1;
+global enableGraphics; enableGraphics= false;
 % time
-params.t.tstop= 60*6;   % min
+params.t.tstop= 60*16;   % min
 params.t.tstart= 0;
 params.t.timePoints= 400;
 % coefficients
@@ -22,19 +22,19 @@ params.c.d_AHL= 7e-5;                      % [1/min]
 %params.c.d_AHL= 0.001;
 
 % geometry
-params.g.bactCenter0= 1e-3*[2.5,-1.082];
+params.g.bactCenter0= 1e-3*[1200,-1.082];
 params.g.bactSize= 1e-3*[1,2.164];
-params.g.nRings= 150; params.g.nLayers= 3;
+params.g.nRings= 10; params.g.nLayers= 1;
 params.g.ringDist= 1*1e-3; params.g.layerSeparation= 1.082*1e-3;
 %params.g.lateralSpacing= .1e-3;  % spacing between the membranes of adjacent bacteria in a ring  [not supported]
-%params.g.domainLim= [17,5.51];     % small disk
+params.g.domainLim= [17,5.51];     % small disk
 %params.g.domainLim= [1.7, .551];     % xs
-params.g.domainLim= [1,.25];          % tiny
+%params.g.domainLim= [1,.25];          % tiny
 %params.g.domainLim= [20,20]*1e-3;    % tiny
 
 % mesh
 params.m.Hgrad= 1.3;
-params.m.HmaxCoeff= 1/30;
+params.m.HmaxCoeff= 1/20;
 % init
 params.solve.y0= [1.5347;0;0;0;0; 0;0;0];  % [nM]
 % solve

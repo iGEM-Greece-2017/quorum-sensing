@@ -10,6 +10,7 @@ global femodel
 global enableSinglecellEq;
 global bactNodesEqulength;
 global bactNodes;
+global bactNodeIdx;
 %nBact= length(bactNodes);
 nBact= size(bactNodes,2);
 %} @@@ Custom @@@ %%
@@ -41,8 +42,7 @@ if femodel.vc || femodel.va || femodel.vf
     [femodel.K, femodel.F]= ...
       formGlobalKF2D(femodel.emptyPDEModel, femodel.p, ...
                      femodel.t, femodel.coefstruct,u(nodeIdx,i),t);
-    A = formGlobalM2D(femodel.emptyPDEModel, femodel.p, femodel.t, femodel.coefstruct,u(nodeIdx,i),t,'a');
-    femodel.A = A; % TEMP - Change the femodel to have a A matrix later.
+    femodel.A = formGlobalM2D(femodel.emptyPDEModel, femodel.p, femodel.t, femodel.coefstruct,u(nodeIdx,i),t,'a');
           %} ### @@@    DANGER, i==1 drops most of the computations !!!    @@@ ###
   elseif(femodel.nrp==3)
     error('[firstOrderODEf]: code has been stripped!');
@@ -63,39 +63,40 @@ if ~enableSinglecellEq
   error('[firstOrderODEf]: code has been stripped!');
 end
 % Initial calculation for d(n_i)/dt
-f= [-K*u(nodeIdx,:); zeros(nBact*8,size(u,2))];
+%f= [-K*u(nodeIdx,:); zeros(nBact*8,size(u,2))];
+f= u;   % allocate only
 
 [modelP,modelGrowth]= singlecell.modelCoeffs_weber(ones(11,1),false,false);
 yIdx1= max(nodeIdx)+1;  % Index of 1st y of 0th bacterium
-
+if bactNodesEqulength
+  bactNodeN= sum(bactNodes(:,1));
+  uCoeffNorm= F(bactNodeIdx);
+  uCoeffNorm= uCoeffNorm ./ repmat( sum(uCoeffNorm) ,bactNodeN,1);
+end
 
 for i= 1:size(u,2)
   yBact= zeros(11,nBact); yBact(11,:)= 1;
   yBact([1:5,7:9],:)= reshape(u(yIdx1: yIdx1+8*(nBact-1)+7, i), 8,nBact);
-  for b= 1:nBact
-    physToComp= F(bactNodes(:,b));
-    yBact(6,b)= sum(u(bactNodes(:,b),i).*physToComp./sum(physToComp));    % y variables for this bacterium
+  % Calculate average AHL level for each bacterium
+  if bactNodesEqulength
+    uBact= reshape(u(bactNodeIdx,i), [],nBact);
+    yBact(6,:)= sum(uBact.*uCoeffNorm);
+  else
+    for b= 1:nBact
+      uCoeff= F(bactNodes(:,b));
+      yBact(6,b)= sum(u(bactNodes(:,b),i).*uCoeff./sum(uCoeff));    % y variables for this bacterium
+    end
   end
   dy= singlecell.model_weber(t,yBact,modelP,modelGrowth);
   ahlProd= F;
-  for b= 1:nBact
-    ahlProd(bactNodes(:,b))= dy(6,b)*F(bactNodes(:,b));
-    %physToComp= F(bactNodes(:,b));
-    %ahlProd= dy(6,b)*physToComp;
-
-    % dy(6) contains the total derivative of all the contributing terms
-    % dy(6):= d(ahl)/dt
-    % From the definition of <ahl>, an equation that must hold can be derived with
-    % the chain rule: mean(n_i')==AHL'
-    % A correction factor will be added to the n_i' to accomodate it:
-
-    % Note:
-    %   The cylindrical symmetry allows for many bacteria that sit on a cylindrical ring
-    % of set radius to be simulated by a single set of singlecell equations. Their total
-    % effect is incorporated by multiplying their number with their output (dy_6)
-    %f(bactNodes(:,b),i)= f(bactNodes(:,b),i) + ahlProd;
+  if bactNodesEqulength
+    ahlProd(bactNodeIdx)= repmat(dy(6,:), bactNodeN,1) .* F(bactNodeIdx);
+  else
+    for b= 1:nBact
+      ahlProd(bactNodes(:,b))= dy(6,b)*F(bactNodes(:,b));
+    end
   end
-  f(1:yIdx1-1,i)= f(1:yIdx1-1,i) + ahlProd;
-  f(yIdx1: yIdx1+8*(nBact-1)+7, i)= reshape(dy([1:5,7:9],:),[],1);
+  f(:,i)= [ahlProd; reshape(dy([1:5,7:9],:),[],1)];
 end
+f= f + [-K*u(nodeIdx,:); zeros(nBact*8,size(u,2))];
 end
