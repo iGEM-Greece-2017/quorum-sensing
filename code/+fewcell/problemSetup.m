@@ -23,8 +23,10 @@ for layer= 1:p.g.nLayers
   prevLayerStart= (layer-1)*p.g.nRings+1;
 end
 nBact= size(p.g.bactCenters,1);
+global bactProdMultiplier; bactProdMultiplier= p.g.bactProdMultiplier;
+
 bactRingDensity= fewcell.util.bactRingDensity(p.g.bactCenters(:,1),p.g.bactSize, 0);
-totalBacteria= round(sum(bactRingDensity));
+totalBacteria= round(sum(bactRingDensity))*bactProdMultiplier;
 fprintf('Total bacteria: %d\n', totalBacteria);
 
 % Create geometry description

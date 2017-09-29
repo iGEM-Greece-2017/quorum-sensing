@@ -11,7 +11,7 @@ global enableSinglecellEq;
 global bactNodesEqulength;
 global bactNodes;
 global bactNodeIdx;
-%nBact= length(bactNodes);
+global bactProdMultiplier;  % multiplies each bacterium's AHL change, to simulate a denser bacterial population
 nBact= size(bactNodes,2);
 %} @@@ Custom @@@ %%
 
@@ -62,9 +62,6 @@ end
 if ~enableSinglecellEq    
   error('[firstOrderODEf]: code has been stripped!');
 end
-% Initial calculation for d(n_i)/dt
-%f= [-K*u(nodeIdx,:); zeros(nBact*8,size(u,2))];
-f= u;   % allocate only
 
 [modelP,modelGrowth]= singlecell.modelCoeffs_weber(ones(11,1),false,false);
 yIdx1= max(nodeIdx)+1;  % Index of 1st y of 0th bacterium
@@ -74,6 +71,7 @@ if bactNodesEqulength
   uCoeffNorm= uCoeffNorm ./ repmat( sum(uCoeffNorm) ,bactNodeN,1);
 end
 
+f= u;   % allocate only
 for i= 1:size(u,2)
   yBact= zeros(11,nBact); yBact(11,:)= 1;
   yBact([1:5,7:9],:)= reshape(u(yIdx1: yIdx1+8*(nBact-1)+7, i), 8,nBact);
@@ -82,19 +80,24 @@ for i= 1:size(u,2)
     uBact= reshape(u(bactNodeIdx,i), [],nBact);
     yBact(6,:)= sum(uBact.*uCoeffNorm);
   else
+    % Stripped for efficiency in parfor
+    %
     for b= 1:nBact
       uCoeff= F(bactNodes(:,b));
       yBact(6,b)= sum(u(bactNodes(:,b),i).*uCoeff./sum(uCoeff));    % y variables for this bacterium
     end
+    %}
   end
   dy= singlecell.model_weber(t,yBact,modelP,modelGrowth);
   ahlProd= F;
   if bactNodesEqulength
-    ahlProd(bactNodeIdx)= repmat(dy(6,:), bactNodeN,1) .* F(bactNodeIdx);
+    ahlProd(bactNodeIdx)= repmat(bactProdMultiplier*dy(6,:), bactNodeN,1) .* F(bactNodeIdx);
   else
+    %
     for b= 1:nBact
-      ahlProd(bactNodes(:,b))= dy(6,b)*F(bactNodes(:,b));
+      ahlProd(bactNodes(:,b))= bactProdMultiplier*dy(6,b)*F(bactNodes(:,b));
     end
+    %}
   end
   f(:,i)= [ahlProd; reshape(dy([1:5,7:9],:),[],1)];
 end

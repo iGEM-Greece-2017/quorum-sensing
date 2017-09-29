@@ -74,26 +74,9 @@ nBact= length(bactNodes);
 % N: pde mesh nodes, y: singlecell variables
 % 1: dn'/dn
 % -> Remains unchanged
+error('missing');
 
-for b= 1:nBact
-  ahl= u(bactNodes{b}(1));
-  yIdx= (nBact-b+1)*8-1;    % where the y variables for this bacterium start (relative to end)
-  yBact= [u(end-yIdx: end-yIdx+4); ahl; u(end-yIdx+5: end-yIdx+7)];   % y variables for this bacterium
-  jac= singlecell.modelJacobian(1,yBact);
-  
-  % 2: dn'/dy
-  dndy= zeros(size(df,1),8);
-  dndy(bactNodes{b}(1),:)= jac(6,[1:5,7:9]);
-  % 3: dy'/dy
-  dydy= jac([1:5,7:9],[1:5,7:9]);
-  % 4: dy'/dn
-  dydn= zeros(8, size(df,2));
-  dydn(:,bactNodes{b}(1))= jac([1:5,7:9],6);
-  % Concatenate the pieces
-  df= [df, dndy; dydn, dydy];
-end
-
-min(svd(dydy))
+%min(svd(dydy))
 %det(dydy)
 %spy(df);
 end
