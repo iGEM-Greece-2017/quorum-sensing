@@ -22,9 +22,9 @@ params.c.d_AHL= 7e-5;                      % [1/min]
 %params.c.d_AHL= 0.001;
 
 % geometry
-params.g.bactCenter0= 1e-3*[2000,-1.082];
+params.g.bactCenter0= 1e-3*[4000,-1.082];
 params.g.bactSize= 1e-3*[1,2.164];
-params.g.nRings= 250; params.g.nLayers= 2;
+params.g.nRings= 120; params.g.nLayers= 2;
 params.g.ringDist= 1*1e-3; params.g.layerSeparation= 1.082*1e-3;
 params.g.bactProdMultiplier= 2.5;   % simulate a higher density, counteracting the spacing imposed above
 %params.g.lateralSpacing= .1e-3;    % spacing between the membranes of adjacent bacteria in a ring  [not supported]
@@ -34,13 +34,13 @@ params.g.domainLim= [17,5.51];     % small disk
 %params.g.domainLim= [20,20]*1e-3;    % tiny
 
 % mesh
-params.m.Hgrad= 1.3;
-params.m.HmaxCoeff= 1/16;
+params.m.Hgrad= 1.4;
+params.m.HmaxCoeff= 1/25;
 % init
 params.solve.y0= [1.5347;0;0;0;0; 0;0;0];  % [nM]
 % solve
 params.solve.AbsTol_y= [1e-3,1e-2,1e-2,1e-3,1e-3,  1e-6,1e-6,1e-4]*1e0;
-params.solve.AbsTol= 1e-8;    % for diffusion nodes
+params.solve.AbsTol= 1e-7;    % for diffusion nodes
 params.solve.RelTol= 1e-4;
 params.solve.FeatureSize= min(params.g.bactSize)/10;
 
