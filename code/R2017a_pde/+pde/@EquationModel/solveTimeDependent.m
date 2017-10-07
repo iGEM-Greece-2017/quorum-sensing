@@ -22,6 +22,7 @@ femodel=pde.DynamicDiscretizedPDEModel(self,p,e,t,coefstruct,u0,tlist,tsecondOrd
   global solveInternalParams;
   global bactNodes;
   global yyResults;
+  global growth;
   
   if enableSinglecellEq, femodel.vf= 1; end
   %nBact= length(bactNodes);
@@ -89,16 +90,28 @@ end
   % ODE solver options
   odeoptions.Vectorized= 'on';
   odeoptions.Jacobian= [];
-  odeoptions.InitialStep= 1e-5; odeoptions.JConstant= 'off';
+  odeoptions.JConstant= 'off';
+  odeoptions.InitialStep= .1; %odeoptions.MaxStep= 10;
   if enableSinglecellEq
     nY= nBact*8;  % number of extra variables
     odeoptions.AbsTol= [odeoptions.AbsTol*ones(1,length(uu0)), zeros(1,nY)];
     odeoptions.AbsTol(end-(nY-1):end)= repmat(solveInternalParams.AbsTol_y, 1,nBact);
     uu0= [uu0; repmat(solveInternalParams.y0,nBact,1)];
   end
-%} @@@ Custom @@@ %%
-[~,uu]=ode15s(fcn,tlist,uu0,odeoptions);
-%{ @@@ Custom @@@ %%
+  
+  growth.i= 1;
+  solution= ode15s(fcn,[tlist(1),tlist(growth.tstep(growth.i))],uu0,odeoptions);
+  tGrowthstep= 1:growth.tstep(growth.i);
+  uu= zeros(length(tlist),size(uu0,1));
+  uu(tGrowthstep,:)= deval(solution,tlist(tGrowthstep))';
+  while solution.x(end) < tlist(end)
+    uu0= fewcell.util.growthUpdateSolution(uu(:,tGrowthstep(end)),growth,bactNodes);
+    growth.i= growth.i+1;
+    solution= odextend(solution,[],tlist(growth.tstep(growth.i)),uu0,odeoptions);
+    tGrowthstep= growth.tstep(growth.i-1)+1:growth.tstep(growth.i);
+    uu(tGrowthstep,:)= deval(solution,tlist(tGrowthstep))';
+  end
+  
   if enableSinglecellEq
     for b= 1:nBact
       % where the y variables for this bacterium start (relative to end)

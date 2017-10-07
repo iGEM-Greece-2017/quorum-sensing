@@ -25,9 +25,30 @@ end
 nBact= size(p.g.bactCenters,1);
 global bactProdMultiplier; bactProdMultiplier= p.g.bactProdMultiplier;
 
-bactRingDensity= fewcell.util.bactRingDensity(p.g.bactCenters(:,1),p.g.bactSize, 0);
-totalBacteria= round(sum(bactRingDensity))*bactProdMultiplier;
-fprintf('Total bacteria: %d\n', totalBacteria);
+bactRingDensity= fewcell.util.bactRingDensity(p.g.bactCenters(1:p.g.nRings,1),p.g.bactSize, 0);
+bactRingDensity= bactRingDensity*p.g.nLayers*bactProdMultiplier;
+totalBacteria= sum(bactRingDensity);
+if p.growth.on && p.growth.maxRings < p.g.nRings
+  totalBacteria= sum(bactRingDensity(end-p.growth.maxRings:end));
+end
+fprintf('Max bacteria: %d', round(totalBacteria));
+if p.growth.on, fprintf('\tGrowth ON\n'); else, fprintf('\tGrowth OFF\n'); end
+
+% Calculate growth step sizes
+global growth;
+if p.growth.on
+  maxStep= floor(p.growth.maxRings/p.growth.dr);
+  growth.stepSize= sum(reshape(bactRingDensity,p.growth.dr,[]))';
+  % TODO: growth.stepBact= [];
+  if p.growth.maxRings < p.g.nRings
+    growth.stepSize= growth.stepSize - [zeros(maxStep,1);growth.stepSize(1:end-maxStep)];
+    % TODO: growth.stepBact= [];
+  end
+  growth.bactN= singlecell.growthCurve(sum(bactRingDensity(1:p.growth.r0)),totalBacteria,tlist);
+  [growth.tstep, tLast]= fewcell.util.makeGrowthTimesteps(growth);
+else
+  growth.tstep= length(tlist);
+end
 
 % Create geometry description
 x= [1,0;0,1;0,1;1,0]; y= [1,0;1,0;0,1;0,1];
@@ -88,11 +109,11 @@ fprintf('Total equations: %d\n', totalMeshNodes + nBact*8);
 global enableGraphics
 if plotMesh && enableGraphics
   figure(2); clf;
-  pdeplot(model,'NodeLabels','off');
+  pdeplot(model,'NodeLabels','on');
   %pdegplot(model, 'EdgeLabels','on','FaceLabels','on');
   axis tight;
   meshPlot= gca;
-  meshPlot.XLim= [0 p.viz.domLim(1)];
-  meshPlot.YLim= [-p.viz.domLim(2) 0];
+  meshPlot.XLim= p.viz.domLim(1,:);
+  meshPlot.YLim= -flip(p.viz.domLim(2,:));
   drawnow;
 end

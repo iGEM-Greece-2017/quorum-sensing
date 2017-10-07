@@ -9,7 +9,7 @@ clear params; clear global;
 % Molarity: nM, Time: min, Length: mm, Quantity: fmol (nM*mm^3)
 params.runID= randi(2147483644);
 global enableSinglecellEq; enableSinglecellEq= true;
-global enableGraphics; enableGraphics= false;
+global enableGraphics; enableGraphics= true;
 % time
 params.t.tstop= 60*16;   % min
 params.t.tstart= 0;
@@ -33,6 +33,11 @@ params.g.bactProdMultiplier= 2.5;   % simulate a higher density, counteracting t
 params.g.domainLim= [1,.25];          % tiny
 %params.g.domainLim= [20,20]*1e-3;    % tiny
 
+params.growth.on= 0;
+params.growth.r0= 1;      % How many rings of bacteria to start with
+params.growth.dr= 2;      % How many rings of bacteria to add at each growth step
+params.growth.maxRings= 100;
+
 % mesh
 params.m.Hgrad= 1.4;
 params.m.HmaxCoeff= 1/25;
@@ -45,7 +50,7 @@ params.solve.RelTol= 1e-4;
 params.solve.FeatureSize= min(params.g.bactSize)/10;
 
 % viz
-params.viz.showMesh= true;
+params.viz.showMesh= false;
 params.viz.domLim= [[0;0],params.g.domainLim'];
 params.viz.interpResolution= 140;
 params.viz.integrateAbstol= 1;
