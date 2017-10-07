@@ -31,6 +31,6 @@ if params.figID(3)>0 && enableGraphics
   pdeplot(model,'XYData',result.NodalSolution(:,end), 'ZData',result.NodalSolution(:,end), 'Mesh','on','colormap','jet');
   view(0,90);
   nodalPlot= gca;
-  nodalPlot.XLim= [0 params.domLim(1)];
-  nodalPlot.YLim= [-params.domLim(2) 0];
+  nodalPlot.XLim= params.domLim(1,:);
+  nodalPlot.YLim= -flip(params.domLim(2,:));
 end

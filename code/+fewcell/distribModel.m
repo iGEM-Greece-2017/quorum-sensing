@@ -7,9 +7,9 @@ clear params; clear global;
 %% Parameters
 % Units:
 % Molarity: nM, Time: min, Length: mm, Quantity: fmol (nM*mm^3)
-runID= randi(2147483644);
+params.runID= randi(2147483644);
 global enableSinglecellEq; enableSinglecellEq= true;
-global enableGraphics; enableGraphics= true;
+global enableGraphics; enableGraphics= false;
 % time
 params.t.tstop= 60*16;   % min
 params.t.tstart= 0;
@@ -22,15 +22,15 @@ params.c.d_AHL= 7e-5;                      % [1/min]
 %params.c.d_AHL= 0.001;
 
 % geometry
-params.g.bactCenter0= 1e-3*[4000,-1.082];
+params.g.bactCenter0= 1e-3*[40,-1.082];
 params.g.bactSize= 1e-3*[1,2.164];
-params.g.nRings= 120; params.g.nLayers= 2;
+params.g.nRings= 30; params.g.nLayers= 2;
 params.g.ringDist= 1*1e-3; params.g.layerSeparation= 1.082*1e-3;
 params.g.bactProdMultiplier= 2.5;   % simulate a higher density, counteracting the spacing imposed above
 %params.g.lateralSpacing= .1e-3;    % spacing between the membranes of adjacent bacteria in a ring  [not supported]
-params.g.domainLim= [17,5.51];     % small disk
+%params.g.domainLim= [17,5.51];     % small disk
 %params.g.domainLim= [1.7, .551];     % xs
-%params.g.domainLim= [1,.25];          % tiny
+params.g.domainLim= [1,.25];          % tiny
 %params.g.domainLim= [20,20]*1e-3;    % tiny
 
 % mesh
@@ -46,8 +46,7 @@ params.solve.FeatureSize= min(params.g.bactSize)/10;
 
 % viz
 params.viz.showMesh= true;
-params.viz.domLim= params.g.domainLim;
-params.viz.zoominFactor= params.g.domainLim./params.viz.domLim;
+params.viz.domLim= [[0;0],params.g.domainLim'];
 params.viz.interpResolution= 140;
 params.viz.integrateAbstol= 1;
 params.viz.timePoints= floor(params.t.timePoints/20);
