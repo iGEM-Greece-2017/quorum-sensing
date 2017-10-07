@@ -11,7 +11,7 @@ model.SolverOptions.ReportStatistics= 'on';
 % Defines the global variable <bactNodeCoeffs>, determining how the singlecell results 
 %   affect the mesh nodes
 nBact= size(params.g.bactCenters,1);
-fewcell.util.makeBactNodeCoeffs(model.Mesh,nBact);
+fewcell.util.makeBactNodeCoeffs(model.Mesh,nBact,params.g);
 
 % pass params to <solveTimeDependent.m> without changing all the functions in between
 global solveInternalParams;
