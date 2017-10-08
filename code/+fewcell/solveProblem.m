@@ -27,4 +27,4 @@ for b= 1:length(yyResults)
   yyResults{b}= [yyResults{b},ones(length(tlist),1)];
 end
 
-save(['data/tmpresults_',num2str(params.runID),'.mat'], 'params','model','result','yyResults');
+save(['data/tmpresults_',num2str(params.runID),'.mat'], 'params','model','result','yyResults','tlist');

@@ -9,15 +9,21 @@ fprintf('Nodal max [AHL] at t=%.1fmin: %.3g [nM]\n', interp_t(end), max(result.N
 global enableGraphics;
 % Distribution plot
 global distribAHL_interp_graphics;
+%vid= VideoWriter('data/results/growth_fancyGraphics/video_growthOn','Motion JPEG 2000');
+%vid.FrameRate= 10;
+%open(vid);
 if params.figID(1)>0 && enableGraphics
   distribAHL_interp_graphics= []; distribAHL_interp_graphics.first= true;
   for t= 1:length(interp_t)
     tic;
     fewcell.viz.plot(AHLDistrib,x,y,interp_t,totalAHL,params.figID(1),t,params.dynamicScaling);
+    %frame= getframe(gcf);
+    %writeVideo(vid, frame);
     pauseTime= 1/22-toc;
     if pauseTime>0, pause(pauseTime); end
   end
 end
+%close(vid);
 
 % Singlecell plot
 global yyResults;
