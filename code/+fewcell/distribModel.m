@@ -32,9 +32,20 @@ params.g.bactProdMultiplier= 2.5;   % simulate a higher density, counteracting t
 %params.g.domainLim= [1.7, .551];     % xs
 params.g.domainLim= [1,.25];          % tiny
 %params.g.domainLim= [20,20]*1e-3;    % tiny
+% Membrane r: 12.5mm -> (30oC)
+% - Full nutrient agar: 10^10.1 cfu/membrane, growth.r=1.71
+% *- 1/5 nutrient: 10^9.45 cfu/membrane, growth.r=1.5
+% - 1/25 nutrient: 10^8.9 cfu/membrane, growth.r=1.5
+% - no nutrients: 10^7.75 cfu/membrane, growth.r=.98
 
-params.growth.on= 0;
-params.growth.r0= 1;      % How many rings of bacteria to start with
+% growth
+params.growth.on= false;    % enable/disable growth
+% growth curve params
+params.growth.params.r= 1.5/60;
+params.growth.params.m= 0.52;
+params.growth.params.n= 3.5;
+% growth step params
+params.growth.r0= 2;      % How many rings of bacteria to start with
 params.growth.dr= 2;      % How many rings of bacteria to add at each growth step
 params.growth.maxRings= 100;
 
@@ -51,13 +62,13 @@ params.solve.FeatureSize= min(params.g.bactSize)/10;
 
 % viz
 params.viz.showMesh= false;
-params.viz.domLim= [[0;0],params.g.domainLim'];
+params.viz.domLim= [[0;0],params.g.domainLim']/8;
 params.viz.interpResolution= 140;
 params.viz.integrateAbstol= 1;
-params.viz.timePoints= floor(params.t.timePoints/20);
+params.viz.timePoints= floor(params.t.timePoints/8);
 params.viz.dynamicScaling= true;
 params.viz.logscaleSinglecell= false;
-params.viz.figID= [5,6,7];
+params.viz.figID= [2,3,4];
 
 %% Solve
 [params,model,tlist,domainVolume]= fewcell.problemSetup(params,params.viz.showMesh);

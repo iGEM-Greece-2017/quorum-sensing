@@ -32,23 +32,6 @@ if p.growth.on && p.growth.maxRings < p.g.nRings
   totalBacteria= sum(bactRingDensity(end-p.growth.maxRings:end));
 end
 fprintf('Max bacteria: %d', round(totalBacteria));
-if p.growth.on, fprintf('\tGrowth ON\n'); else, fprintf('\tGrowth OFF\n'); end
-
-% Calculate growth step sizes
-global growth;
-if p.growth.on
-  maxStep= floor(p.growth.maxRings/p.growth.dr);
-  growth.stepSize= sum(reshape(bactRingDensity,p.growth.dr,[]))';
-  % TODO: growth.stepBact= [];
-  if p.growth.maxRings < p.g.nRings
-    growth.stepSize= growth.stepSize - [zeros(maxStep,1);growth.stepSize(1:end-maxStep)];
-    % TODO: growth.stepBact= [];
-  end
-  growth.bactN= singlecell.growthCurve(sum(bactRingDensity(1:p.growth.r0)),totalBacteria,tlist);
-  [growth.tstep, tLast]= fewcell.util.makeGrowthTimesteps(growth);
-else
-  growth.tstep= length(tlist);
-end
 
 % Create geometry description
 x= [1,0;0,1;0,1;1,0]; y= [1,0;1,0;0,1;0,1];
@@ -68,6 +51,50 @@ names{2,end}= '';
 setf= [names{:}];
 names= char(names{1,:}); names= names';
 [geometryDescription,~]= decsg(shapes,setf,names);
+
+%% Growth
+if p.growth.on, fprintf('\tGrowth ON\n'); else, fprintf('\tGrowth OFF\n'); end
+% Calculate growth step sizes
+global growth;
+global enableSinglecellEq;
+global enableGraphics
+if ~enableSinglecellEq, p.growth.on= false; end
+growth.on= p.growth.on;
+if growth.on
+  % Growth curve params
+  p.growth.params.Nmax= totalBacteria;
+  p.growth.params.Nmin= 0;   % disregard lag phase
+  % Copy parameters to global
+  growth.r0= p.growth.r0; growth.dr= p.growth.dr;
+  growth.maxRings= p.growth.maxRings; growth.nLayers= p.g.nLayers;
+  growth.initDNA= p.solve.y0(1); growth.bactRingDensity= bactRingDensity;
+  maxStep= floor(p.growth.maxRings/p.growth.dr);
+  
+  % Sum the number of bacteria every <dr> rings (for all layers) to calculate the growth step size
+  assert(growth.dr<=growth.r0, 'Number of rings to grow at each growth step must be <= that the initial rings');
+  assert(~mod(p.g.nRings-growth.r0, growth.dr), '<nRings>-<r0> is not divisible by <dr>; increase <nRings>');
+  growth.stepSize= sum(reshape(bactRingDensity(growth.r0+1:end),p.growth.dr,[]),1);
+  if p.growth.maxRings < p.g.nRings
+    growth.stepSize= growth.stepSize - [zeros(1,maxStep),growth.stepSize(1:end-maxStep)];
+  end
+  % Calculate growth curve
+  growth.bactN= singlecell.growthCurve(sum(bactRingDensity(1:p.growth.r0)),tlist,p.growth.params);
+  % Calculate the time at which each growth step should occur
+  [growth.tstep, tLast]= fewcell.util.makeGrowthTimesteps(growth);
+
+  % Plot growth curve vs quantized growth curve
+  qgc= zeros(size(growth.bactN))+sum(reshape(bactRingDensity(1:growth.r0),p.growth.dr,[]),1);
+  for t= 1:length(growth.tstep)-1
+    qgc(growth.tstep(t):growth.tstep(t+1))= qgc(growth.tstep(t))+growth.stepSize(t);
+  end
+  if plotMesh && enableGraphics
+    figure(1); plot(tlist/60,[growth.bactN,qgc]);
+  end
+else
+  growth.tstep= length(tlist);
+end
+growth.minTstep= min(tlist(growth.tstep) - tlist([1 growth.tstep(1:end-1)]));
+if growth.on, fprintf('Num of growth timesteps: %d\tMin timestep: %f\n', length(growth.tstep),growth.minTstep); end
 
 %% PDE
 model= createpde(1);
@@ -106,7 +133,6 @@ fprintf('Total mesh nodes: %d\n', totalMeshNodes);
 fprintf('Total equations: %d\n', totalMeshNodes + nBact*8);
 
 % Plot mesh
-global enableGraphics
 if plotMesh && enableGraphics
   figure(2); clf;
   pdeplot(model,'NodeLabels','on');

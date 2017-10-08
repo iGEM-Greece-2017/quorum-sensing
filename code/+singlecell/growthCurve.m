@@ -1,14 +1,6 @@
-function n= growthCurve(n0,bactNmax,tlist)
-
-  % Growth parameters
-  growth.r= 2.2/60;
-  growth.m= 0.52; growth.n= 3.5;
-  growth.Nmax= bactNmax;
-  %growth.Nmin= n0*(1-1e-6);
-  growth.Nmin= 0;   % disregard lag phase
-  
+function n= growthCurve(n0,tlist, growthParams)
   opt= odeset('RelTol',1e-5,'InitialStep',1e-3);
-  [~,n]= ode15s(@(t,y)growthWrapper(t,y,growth),tlist,n0,opt);
+  [~,n]= ode15s(@(t,y)growthWrapper(t,y,growthParams),tlist,n0,opt);
 end
 
 function dN= growthWrapper(~,n,growth)

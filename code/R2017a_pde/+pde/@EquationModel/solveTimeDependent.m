@@ -91,12 +91,18 @@ end
   odeoptions.Vectorized= 'on';
   odeoptions.Jacobian= [];
   odeoptions.JConstant= 'off';
-  odeoptions.InitialStep= .1; %odeoptions.MaxStep= 10;
+  odeoptions.InitialStep= .1; %odeoptions.MaxStep= growth.minTstep;
   if enableSinglecellEq
     nY= nBact*8;  % number of extra variables
     odeoptions.AbsTol= [odeoptions.AbsTol*ones(1,length(uu0)), zeros(1,nY)];
     odeoptions.AbsTol(end-(nY-1):end)= repmat(solveInternalParams.AbsTol_y, 1,nBact);
-    uu0= [uu0; repmat(solveInternalParams.y0,nBact,1)];
+    if growth.on
+      uu0= [uu0;
+            repmat(solveInternalParams.y0,growth.r0*growth.nLayers,1);
+            zeros((nBact-growth.r0*growth.nLayers)*8,1)];
+    else
+      uu0= [uu0; repmat(solveInternalParams.y0,nBact,1)];
+    end
   end
   
   growth.i= 1;
@@ -105,11 +111,11 @@ end
   uu= zeros(length(tlist),size(uu0,1));
   uu(tGrowthstep,:)= deval(solution,tlist(tGrowthstep))';
   while solution.x(end) < tlist(end)
-    uu0= fewcell.util.growthUpdateSolution(uu(:,tGrowthstep(end)),growth,bactNodes);
-    growth.i= growth.i+1;
-    solution= odextend(solution,[],tlist(growth.tstep(growth.i)),uu0,odeoptions);
-    tGrowthstep= growth.tstep(growth.i-1)+1:growth.tstep(growth.i);
+    uu0= fewcell.util.growthUpdateSolution(uu(tGrowthstep(end),:)',growth,bactNodes);
+    solution= odextend(solution,[],tlist(growth.tstep(growth.i+1)),uu0,odeoptions);
+    tGrowthstep= growth.tstep(growth.i)+1:growth.tstep(growth.i+1);
     uu(tGrowthstep,:)= deval(solution,tlist(tGrowthstep))';
+    growth.i= growth.i+1;
   end
   
   if enableSinglecellEq
