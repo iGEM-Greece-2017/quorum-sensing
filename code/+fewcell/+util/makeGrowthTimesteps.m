@@ -7,7 +7,7 @@ function [tstep,tLast]= makeGrowthTimesteps(growth)
   tLast= length(growth.bactN);
   grownThisStep= false;
   for t= 2:length(growth.bactN)
-    if growth.bactN(t)-growth.bactN(tPrev) > growth.stepSize(i)/2   % Timestamp the middle of the growth step, not the end
+    if growth.bactN(t)-growth.bactN(tPrev) > growth.stepSize(i)/3   % Timestamp the middle of the growth step, not the end
       if ~grownThisStep, tstep= [tstep,t]; end
       grownThisStep= true;
       if growth.bactN(t)-growth.bactN(tPrev) > growth.stepSize(i)

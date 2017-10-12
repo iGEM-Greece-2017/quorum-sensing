@@ -25,11 +25,17 @@ femodel=pde.DynamicDiscretizedPDEModel(self,p,e,t,coefstruct,u0,tlist,tsecondOrd
   global growth;
   
   if enableSinglecellEq, femodel.vf= 1; end
-  %nBact= length(bactNodes);
-  nBact= size(bactNodes,2);
+  growth.i= 1;
+  if growth.on
+    nBact= (growth.r0+(growth.i-1)*growth.dr)*growth.nLayers;
+  else
+    nBact= size(bactNodes,2);
+  end
+  nBactMax= size(bactNodes,2);
+  growth.selBactLim= [1,nBact];
 %} @@@ Custom @@@ %%
 
-if(~femodel.IsSpatialCoefficientsNonlinear)
+if ~femodel.IsSpatialCoefficientsNonlinear
     % Spatial coefficients are independent of solution and time.
     % Impose BC on the system matrices only once in the beginning.
     nun=femodel.numConstrainedEqns;
@@ -85,37 +91,48 @@ else
     odeoptions = constructODEoptions(u0,rtol,atol,stats,nu,dfcn,mfcn,tsecondOrder);
 end
 
-
 %{ @@@ Custom @@@ %%
   % ODE solver options
   odeoptions.Vectorized= 'on';
   odeoptions.Jacobian= [];
   odeoptions.JConstant= 'off';
-  odeoptions.InitialStep= .1; %odeoptions.MaxStep= growth.minTstep;
+  odeoptions.InitialStep= 1;
+  nNode= length(uu0);
   if enableSinglecellEq
-    nY= nBact*8;  % number of extra variables
-    odeoptions.AbsTol= [odeoptions.AbsTol*ones(1,length(uu0)), zeros(1,nY)];
-    odeoptions.AbsTol(end-(nY-1):end)= repmat(solveInternalParams.AbsTol_y, 1,nBact);
-    if growth.on
-      uu0= [uu0;
-            repmat(solveInternalParams.y0,growth.r0*growth.nLayers,1);
-            zeros((nBact-growth.r0*growth.nLayers)*8,1)];
-    else
-      uu0= [uu0; repmat(solveInternalParams.y0,nBact,1)];
-    end
+    odeoptions.AbsTol= [odeoptions.AbsTol(1)*ones(1,nNode), ...
+                        repmat(solveInternalParams.AbsTol_y, 1,nBact)];
+    uu0= [uu0; repmat(solveInternalParams.y0,nBact,1)];
   end
+  fprintf('Total growth steps: %d\t End time: %.0fsec\n', length(growth.tstep),tlist(end));
   
-  growth.i= 1;
   solution= ode15s(fcn,[tlist(1),tlist(growth.tstep(growth.i))],uu0,odeoptions);
   tGrowthstep= 1:growth.tstep(growth.i);
-  uu= zeros(length(tlist),size(uu0,1));
-  uu(tGrowthstep,:)= deval(solution,tlist(tGrowthstep))';
+  uu= zeros(length(tlist),nNode+nBactMax*8);
+  tmpU= deval(solution,tlist(tGrowthstep))';
+  uu(tGrowthstep,:)= [tmpU, zeros(length(tGrowthstep),(nBactMax-nBact)*8)];
+  odeoptions.Stats= 'off';
   while solution.x(end) < tlist(end)
-    uu0= fewcell.util.growthUpdateSolution(uu(tGrowthstep(end),:)',growth,bactNodes);
-    solution= odextend(solution,[],tlist(growth.tstep(growth.i+1)),uu0,odeoptions);
-    tGrowthstep= growth.tstep(growth.i)+1:growth.tstep(growth.i+1);
-    uu(tGrowthstep,:)= deval(solution,tlist(tGrowthstep))';
+    fprintf('Growth step %d done\tt=%.0fsec\n', growth.i, tlist(growth.tstep(growth.i)));
     growth.i= growth.i+1;
+    nBact= (growth.r0+(growth.i-1)*growth.dr)*growth.nLayers;
+    % Implement the y changes occuring from the growth step (birth new bacteria, move range of selected bacteria)
+    uu0= fewcell.util.growthUpdateSolution(uu(tGrowthstep(end),:)',nBact,bactNodes);
+    % Strip dead/not-yet-alive bacteria from uu0
+    odeoptions.AbsTol= [odeoptions.AbsTol(1)*ones(1,nNode), ...
+                        repmat(solveInternalParams.AbsTol_y, 1,nBact)];
+    selectedBact_yLim(1)= nNode+1+(growth.selBactLim(1)-1)*8;
+    selectedBact_yLim(2)= selectedBact_yLim(1) + nBact*8-1;
+    uu0= uu0([1:nNode, selectedBact_yLim(1):selectedBact_yLim(2)]);
+    %solution.y= [solution.y; zeros(size(uu0,1)-size(solution.y,1),size(solution.y,2))];  % zero-pad the solution
+    odeoptions.Mass= pde.internal.odefunchandles.firstOrderODEm(...
+        tlist(growth.tstep(growth.i-1)), uu0);
+    % Extend the previous solution
+    %solution= odextend(solution,[],tlist(growth.tstep(growth.i+1)),uu0,odeoptions);
+    tGrowthstep= growth.tstep(growth.i-1)+1:growth.tstep(growth.i);
+    solution= ode15s(fcn,tlist([tGrowthstep(1),tGrowthstep(end)]),uu0,odeoptions);
+    tmpU= deval(solution,tlist(tGrowthstep))';
+    uu(tGrowthstep,:)= [tmpU(:,1:nNode), zeros(length(tGrowthstep),selectedBact_yLim(1)-nNode-1),...
+                        tmpU(:,nNode+1:end), zeros(length(tGrowthstep), (nBactMax-nBact)*8)];
   end
   
   if enableSinglecellEq
@@ -127,7 +144,8 @@ end
       % y variables for this bacterium
       yyResults{b}= [uu(:,end-yIdx: end-yIdx+4), ahl, uu(:,end-yIdx+5: end-yIdx+7), ahl];
     end
-    uu= uu(:,1:end-nY);
+    % TODO: change <below>
+    uu= uu(:,1:end-nBact*8);
   end
 %} @@@ Custom @@@ %%
 

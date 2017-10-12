@@ -1,11 +1,19 @@
-function u= growthUpdateSolution(u,growth,bactNodes)
+function u= growthUpdateSolution(u,nBact,bactNodes)
 % Each time the integration is interrupted, this function updates the system state. It dilutes the existing
 % bacteria, kills inner bacteria if necessary and grows new bacteria outwards
-  nBact= size(bactNodes,2);
-  yIdx1= length(u)-nBact*8+1;  % first y of first bacterium
+  nBactMax= size(bactNodes,2);
+  yIdx1= length(u)-nBactMax*8+1;  % first y of first bacterium
+  
+  %% Select bacteria that will be alive in this growth step
+  global growth;
+  rNewInit= growth.r0+(growth.i-2)*growth.dr+1; rPrevInit= rNewInit-growth.dr;
+  toDieRing= 0;
+  if rNewInit > growth.maxRings
+    toDieRing= rNewInit - growth.maxRings;  % these bacteria die
+  end
+  growth.selBactLim= [1,nBact] + toDieRing*growth.nLayers;
   
   %% Add new rings
-  rNewInit= growth.r0+(growth.i-1)*growth.dr+1; rPrevInit= rNewInit-growth.dr;
   startI= yIdx1+(rNewInit-1)*growth.nLayers*8;        % point to first new bacterium
   prevI= startI - growth.dr*growth.nLayers*8;     % point to first dividing bacterium (<dr> rings back)
   
@@ -22,6 +30,5 @@ function u= growthUpdateSolution(u,growth,bactNodes)
     % Move start/prev indices
     startI= startI+8; prevI= prevI+8;
   end
-  %% Kill old rings if needed
   
 end

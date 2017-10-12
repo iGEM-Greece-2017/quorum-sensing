@@ -8,7 +8,7 @@ clear params; clear global;
 % Units:
 % Molarity: nM, Time: min, Length: mm, Quantity: fmol (nM*mm^3)
 params.runID= randi(2147483644);
-global enableSinglecellEq; enableSinglecellEq= true;
+global enableSinglecellEq; enableSinglecellEq= true;  % false: debugging only
 global enableGraphics; enableGraphics= true;
 % time
 params.t.tstop= 60*14;   % min
@@ -45,8 +45,8 @@ params.growth.params.r= 1.5/60;
 params.growth.params.m= 0.52;
 params.growth.params.n= 3.5;
 % growth step params
-params.growth.r0= 2;      % How many rings of bacteria to start with
-params.growth.dr= 2;      % How many rings of bacteria to add at each growth step
+params.growth.r0= 4;      % How many rings of bacteria to start with
+params.growth.dr= 4;      % How many rings of bacteria to add at each growth step
 params.growth.maxRings= 100;
 
 % mesh
@@ -61,7 +61,7 @@ params.solve.RelTol= 1e-4;
 params.solve.FeatureSize= min(params.g.bactSize)/10;
 
 % viz
-params.viz.showMesh= true;
+params.viz.showMesh= false;
 params.viz.domLim= [[0;0],params.g.domainLim']/2;
 params.viz.interpResolution= 130;
 params.viz.integrateAbstol= 1;

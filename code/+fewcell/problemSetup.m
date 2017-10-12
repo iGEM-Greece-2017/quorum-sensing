@@ -78,7 +78,8 @@ if growth.on
     growth.stepSize= growth.stepSize - [zeros(1,maxStep),growth.stepSize(1:end-maxStep)];
   end
   % Calculate growth curve
-  growth.bactN= singlecell.growthCurve(sum(bactRingDensity(1:p.growth.r0)),tlist,p.growth.params);
+  inoculumSize= sum(bactRingDensity(1:p.growth.r0));
+  growth.bactN= singlecell.growthCurve(inoculumSize,tlist,p.growth.params);
   % Calculate the time at which each growth step should occur
   [growth.tstep, tLast]= fewcell.util.makeGrowthTimesteps(growth);
 
@@ -93,8 +94,11 @@ if growth.on
 else
   growth.tstep= length(tlist);
 end
-growth.minTstep= min(tlist(growth.tstep) - tlist([1 growth.tstep(1:end-1)]));
-if growth.on, fprintf('Num of growth timesteps: %d\tMin timestep: %f\n', length(growth.tstep),growth.minTstep); end
+minTstep= min(tlist(growth.tstep) - tlist([1 growth.tstep(1:end-1)]));
+if growth.on
+  fprintf('Num of growth timesteps: %d\tMin timestep: %f\n', length(growth.tstep),minTstep);
+  fprintf('Inoculum size: %d\n', inoculumSize);
+end
 
 %% PDE
 model= createpde(1);
