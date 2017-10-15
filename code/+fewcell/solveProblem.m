@@ -20,9 +20,11 @@ solveInternalParams.AbsTol_y= params.solve.AbsTol_y;
 tic;
 result= solvepde(model,tlist);
 toc;
-cAHL= result.NodalSolution([6,1],:)';   % Assume: 1: agar surface outside, 6: bact1
 global yyResults;
+global bactNodes;
 for b= 1:length(yyResults)
+  bNode= find(bactNodes(:,b),1);
+  cAHL= result.NodalSolution([bNode,1],:)';   % Assume: 1: agar surface outside, 6: bact1
   yyResults{b}(:,[6,10])= cAHL;
   yyResults{b}= [yyResults{b},ones(length(tlist),1)];
 end

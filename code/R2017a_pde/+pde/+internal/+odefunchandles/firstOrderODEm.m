@@ -35,7 +35,7 @@ global bactNodes;
 global growth;
 if enableSinglecellEq
   if growth.on
-    nBact= (growth.r0+(growth.i-1)*growth.dr)*growth.nLayers;
+    nBact= growth.selBactLim(2)-growth.selBactLim(1)+1;
   else
     nBact= size(bactNodes,2);
   end

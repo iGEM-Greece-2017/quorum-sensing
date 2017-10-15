@@ -14,7 +14,7 @@ global bactNodeIdx;
 global bactProdMultiplier;  % multiplies each bacterium's AHL change, to simulate a denser bacterial population
 global growth;
 if growth.on
-  nBact= (growth.r0+(growth.i-1)*growth.dr)*growth.nLayers;
+  nBact= growth.selBactLim(2)-growth.selBactLim(1)+1;
   selectedBacteria= growth.selBactLim(1):growth.selBactLim(2);
 else
   nBact= size(bactNodes,2);
@@ -74,7 +74,7 @@ end
 yIdx1= max(nodeIdx)+1;  % Index of 1st y of 0th bacterium
 if bactNodesEqulength
   bactNodeN= sum(bactNodes(:,1));
-  uCoeffNorm= F(bactNodeIdx);
+  uCoeffNorm= F(bactNodeIdx(:,selectedBacteria));
   uCoeffNorm= uCoeffNorm ./ repmat( sum(uCoeffNorm) ,bactNodeN,1);
 end
 
@@ -85,7 +85,7 @@ for i= 1:size(u,2)
   % Calculate average AHL level for each bacterium
   if bactNodesEqulength
     uBact= reshape(u(bactNodeIdx(:,selectedBacteria),i), [],nBact);
-    yBact(6,:)= sum(uBact.*uCoeffNorm(:,selectedBacteria));
+    yBact(6,:)= sum(uBact.*uCoeffNorm);
   else
     % Stripped for efficiency in parfor
     %

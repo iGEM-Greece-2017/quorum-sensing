@@ -23,7 +23,7 @@ else
   bactCoord= [X(:)';Y(:)'];
   % Find X,Y idx in p
   for b= 1:nBact
-    idx= find(sum(abs(bactCoord(:,b)-p)<eps)==2);
+    idx= find(sum(abs(bactCoord(:,b)-p)<1e-7)==2);
     bactSubdomain(b)= setdiff(unique( t(faceIdx,any(t(1:end-1,:)==idx)) ),1);
   end
 end
