@@ -11,6 +11,7 @@ bactVolume= pi/4*p.g.bactSize(1).^2 * p.g.bactSize(2);
 p.g.bactCenters= zeros(p.g.nRings*p.g.nLayers,2);
 p.g.bactCenters(1,:)= p.g.bactCenter0;
 ringDist= p.g.ringDist*p.g.bactSize(1);
+assert(mod(ringDist,2), 'Ring distance must be an odd number');
 layerSeparation= p.g.layerSeparation*p.g.bactSize(2);
 prevLayerStart= 1;
 for layer= 1:p.g.nLayers
@@ -25,17 +26,6 @@ for layer= 1:p.g.nLayers
   prevLayerStart= (layer-1)*p.g.nRings+1;
 end
 nBact= size(p.g.bactCenters,1);
-
-global bactProdMultiplier;
-[bactRingDensity, bactProdMultiplier]= fewcell.util.bactRingDensity(p.g.bactCenters(1:p.g.nRings,1),p.g, 0);
-% simulate a higher density, counteracting the spacing between bacteria
-bactRingDensity= bactRingDensity*p.g.nLayers.*bactProdMultiplier;
-bactProdMultiplier= repmat(bactProdMultiplier',p.g.nLayers,1); bactProdMultiplier= bactProdMultiplier(:)';
-totalBacteria= sum(bactRingDensity);
-if p.growth.on && p.growth.maxRings < p.g.nRings
-  totalBacteria= sum(bactRingDensity(end-p.growth.maxRings:end));
-end
-fprintf('Max bacteria: %.3g', round(totalBacteria));
 
 % Create geometry description
 x= [1,0;0,1;0,1;1,0]; y= [1,0;1,0;0,1;0,1];
@@ -55,6 +45,19 @@ names{2,end}= '';
 setf= [names{:}];
 names= char(names{1,:}); names= names';
 [geometryDescription,~]= decsg(shapes,setf,names);
+
+%% Bacterial ring density
+% Calculate the number of simulated bacteria on each ring
+global bactProdMultiplier;
+[bactRingDensity, bactProdMultiplier]= fewcell.util.bactRingDensity(p.g.bactCenters(1:p.g.nRings,1),p.g, 0);
+% simulate a higher density, counteracting the spacing between bacteria
+bactRingDensity= bactRingDensity*p.g.nLayers.*bactProdMultiplier;
+bactProdMultiplier= repmat(bactProdMultiplier',p.g.nLayers,1); bactProdMultiplier= bactProdMultiplier(:)';
+totalBacteria= sum(bactRingDensity);
+if p.growth.on && p.growth.maxRings < p.g.nRings
+  totalBacteria= sum(bactRingDensity(end-p.growth.maxRings:end));
+end
+fprintf('Max bacteria: %.3g', round(totalBacteria));
 
 fewcell.setupGrowth(bactRingDensity,tlist,p)
 %% PDE

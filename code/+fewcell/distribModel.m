@@ -25,7 +25,8 @@ params.c.d_AHL= 7e-5;                      % [1/min]
 params.g.bactSize= 1e-3*[1,2.164];
 params.g.bactCenter0= 1e-3*[100,-1.082];
 params.g.nRings= 20; params.g.nLayers= 2;
-params.g.ringDist= 1; params.g.layerSeparation= .5;
+params.g.ringDist= 1;   % must be an odd number
+params.g.layerSeparation= .5;
 %params.g.domainLim= [17,5.51];       % small disk
 %params.g.domainLim= [1.7, .551];     % xs
 %params.g.domainLim= [1.4, .45];     % xs
