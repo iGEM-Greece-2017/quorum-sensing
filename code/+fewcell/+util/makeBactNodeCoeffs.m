@@ -1,4 +1,4 @@
-function makeBactNodeCoeffs(mesh,nBact,geom)
+function bactSubdomain= makeBactNodeCoeffs(mesh,nBact,geom)
 % Find the mesh nodes that correspond to each bacterium in the geometry and calculate the 
 % coefficient that translates the singlecell dAHL into a change for the corresponding mesh nodes
 

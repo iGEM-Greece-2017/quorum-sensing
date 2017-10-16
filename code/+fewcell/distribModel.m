@@ -24,8 +24,8 @@ params.c.d_AHL= 7e-5;                      % [1/min]
 % geometry
 params.g.bactSize= 1e-3*[1,2.164];
 params.g.bactCenter0= 1e-3*[100,-1.082];
-params.g.nRings= 20; params.g.nLayers= 2;
-params.g.ringDist= 1;   % must be an odd number
+params.g.nRings= 10; params.g.nLayers= 2;
+params.g.ringDist= 5;   % must be an odd number
 params.g.layerSeparation= .5;
 %params.g.domainLim= [17,5.51];       % small disk
 %params.g.domainLim= [1.7, .551];     % xs
@@ -64,8 +64,8 @@ params.solve.FeatureSize= min(params.g.bactSize)/10;
 % viz
 params.viz.showMesh= true;
 params.viz.showGrowthCurve= true;
-params.viz.domLim= [[0;0],params.g.domainLim'./1];
-params.viz.interpResolution= 90;
+params.viz.domLim= [[0.1;0],[0.125;0.010]];
+params.viz.interpResolution= 120;
 params.viz.integrateAbstol= 1;
 params.viz.timePoints= floor(params.t.timePoints/12);
 params.viz.dynamicScaling= true;
