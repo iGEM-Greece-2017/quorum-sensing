@@ -1,6 +1,6 @@
 function [p,model,tlist,domainVolume,bactRingDensity]= problemSetup(p,plotMesh)   %param
 % Setup all elements of the pde problem
-
+global enableGraphics
 %% Time
 %ntime= (p.t.tstop - p.t.tstart)+1;
 tlist= linspace(p.t.tstart, p.t.tstop, p.t.timePoints);
@@ -10,28 +10,32 @@ bactVolume= pi/4*p.g.bactSize(1).^2 * p.g.bactSize(2);
 % Develop bactCenters from metaparameters
 p.g.bactCenters= zeros(p.g.nRings*p.g.nLayers,2);
 p.g.bactCenters(1,:)= p.g.bactCenter0;
+ringDist= p.g.ringDist*p.g.bactSize(1);
+layerSeparation= p.g.layerSeparation*p.g.bactSize(2);
 prevLayerStart= 1;
 for layer= 1:p.g.nLayers
   if layer>1
     p.g.bactCenters((layer-1)*p.g.nRings+1,:)= ...
-      p.g.bactCenters(prevLayerStart,:)-[0,p.g.layerSeparation+p.g.bactSize(2)];
+      p.g.bactCenters(prevLayerStart,:)-[0,layerSeparation+p.g.bactSize(2)];
   end
   for ring= (layer-1)*p.g.nRings+2:layer*p.g.nRings
     p.g.bactCenters(ring,:)= ...
-      p.g.bactCenters(ring-1,:)+[p.g.ringDist+p.g.bactSize(1),0];
+      p.g.bactCenters(ring-1,:)+[ringDist+p.g.bactSize(1),0];
   end
   prevLayerStart= (layer-1)*p.g.nRings+1;
 end
 nBact= size(p.g.bactCenters,1);
-global bactProdMultiplier; bactProdMultiplier= p.g.bactProdMultiplier;
 
-bactRingDensity= fewcell.util.bactRingDensity(p.g.bactCenters(1:p.g.nRings,1),p.g.bactSize, 0);
-bactRingDensity= bactRingDensity*p.g.nLayers*bactProdMultiplier;
+global bactProdMultiplier;
+[bactRingDensity, bactProdMultiplier]= fewcell.util.bactRingDensity(p.g.bactCenters(1:p.g.nRings,1),p.g, 0);
+% simulate a higher density, counteracting the spacing between bacteria
+bactRingDensity= bactRingDensity*p.g.nLayers.*bactProdMultiplier;
+bactProdMultiplier= repmat(bactProdMultiplier',p.g.nLayers,1); bactProdMultiplier= bactProdMultiplier(:)';
 totalBacteria= sum(bactRingDensity);
 if p.growth.on && p.growth.maxRings < p.g.nRings
   totalBacteria= sum(bactRingDensity(end-p.growth.maxRings:end));
 end
-fprintf('Max bacteria: %.2g', round(totalBacteria));
+fprintf('Max bacteria: %.3g', round(totalBacteria));
 
 % Create geometry description
 x= [1,0;0,1;0,1;1,0]; y= [1,0;1,0;0,1;0,1];
@@ -52,51 +56,7 @@ setf= [names{:}];
 names= char(names{1,:}); names= names';
 [geometryDescription,~]= decsg(shapes,setf,names);
 
-%% Growth
-if p.growth.on, fprintf('\tGrowth ON\n'); else, fprintf('\tGrowth OFF\n'); end
-% Calculate growth step sizes
-global growth;
-global enableSinglecellEq;
-global enableGraphics
-if ~enableSinglecellEq, p.growth.on= false; end
-growth.on= p.growth.on;
-if growth.on
-  % Copy parameters to global
-  growth.r0= p.growth.r0; growth.dr= p.growth.dr;
-  growth.maxRings= p.growth.maxRings; growth.nLayers= p.g.nLayers;
-  growth.initDNA= p.solve.y0(1); growth.bactRingDensity= bactRingDensity;
-  maxStep= floor(p.growth.maxRings/p.growth.dr);
-  
-  % Sum the number of bacteria every <dr> rings (for all layers) to calculate the growth step size
-  assert(~mod(p.g.nRings-growth.r0, growth.dr), '<nRings>-<r0> is not divisible by <dr>; increase <nRings>');
-  growth.stepSize= sum(reshape(bactRingDensity(growth.r0+1:end),p.growth.dr,[]),1);
-  if p.growth.maxRings < p.g.nRings
-    growth.stepSize= growth.stepSize - [zeros(1,maxStep),growth.stepSize(1:end-maxStep)];
-  end
-  % Growth curve params
-  inoculumSize= sum(bactRingDensity(1:p.growth.r0));
-  p.growth.params.Nmax= sum(growth.stepSize)+inoculumSize;
-  p.growth.params.Nmin= 0;   % disregard lag phase
-  % Calculate growth curve
-  growth.bactN= singlecell.growthCurve(inoculumSize,tlist,p.growth.params);
-  % Calculate the time at which each growth step should occur
-  [qgc,growth.tstep]= fewcell.util.quantizeGC(growth.bactN,inoculumSize,growth.stepSize);
-  growth.tstep= [growth.tstep;length(tlist)];
-
-  % Plot growth curve vs quantized growth curve
-  if p.viz.showGrowthCurve && enableGraphics
-    figure(1); plot(tlist/60,[growth.bactN,qgc]);
-  end
-else
-  growth.tstep= length(tlist);
-end
-minTstep= min(tlist(growth.tstep) - tlist([1; growth.tstep(1:end-1)]));
-if growth.on
-  fprintf('Num of growth timesteps: %d\tMin timestep: %.0f\tQuantization mre: %.4f\n', ...
-    length(growth.tstep),minTstep,mean((growth.bactN-qgc)./growth.bactN));
-  fprintf('Inoculum size: %.2g\n', inoculumSize);
-end
-
+fewcell.setupGrowth(bactRingDensity,tlist,p)
 %% PDE
 model= createpde(1);
 geometryFromEdges(model,geometryDescription);
@@ -136,7 +96,7 @@ fprintf('Total equations: %d\n', totalMeshNodes + nBact*8);
 % Plot mesh
 if plotMesh && enableGraphics
   figure(2); clf;
-  pdeplot(model,'NodeLabels','on');
+  pdeplot(model,'NodeLabels','off');
   %pdegplot(model, 'EdgeLabels','on','FaceLabels','on');
   axis tight;
   meshPlot= gca;

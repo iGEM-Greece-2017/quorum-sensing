@@ -10,15 +10,15 @@ faceIdx= 4;
 if strcmp(mesh.GeometricOrder, 'quadratic'), faceIdx= 7; end
 [p,~,t]= meshToPet(mesh);
 %% Order bacterial subdomains
-% Scan the geometry in a radial-out direction (all layers per ring) and assign each bacterium to its
+% Scan the geometry in a radial-out direction (all layers per ring first) and assign each bacterium to its
 % corresponding subdomain number
 bactSubdomain= zeros(nBact,1);
 if nargin==2
   bactSubdomain= 2:nBact+1;
 else
   % Upper-left-corner node coordinates
-  ybact= -(0:geom.nLayers-1)'*(geom.bactSize(2)+geom.layerSeparation);
-  xbact= geom.bactCenter0(1)-geom.bactSize(1)/2 + (0:geom.nRings-1)'*(geom.bactSize(1)+geom.ringDist);
+  ybact= -(0:geom.nLayers-1)'*(geom.bactSize(2)+geom.layerSeparation*geom.bactSize(2));
+  xbact= geom.bactCenter0(1)-geom.bactSize(1)/2 + (0:geom.nRings-1)'*(geom.bactSize(1)+geom.ringDist*geom.bactSize(1));
   [X,Y]= meshgrid(xbact,ybact);
   bactCoord= [X(:)';Y(:)'];
   % Find X,Y idx in p

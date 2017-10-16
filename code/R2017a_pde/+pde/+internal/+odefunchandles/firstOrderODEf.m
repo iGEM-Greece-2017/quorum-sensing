@@ -12,14 +12,7 @@ global bactNodesEqulength;
 global bactNodes;
 global bactNodeIdx;
 global bactProdMultiplier;  % multiplies each bacterium's AHL change, to simulate a denser bacterial population
-global growth;
-if growth.on
-  nBact= growth.selBactLim(2)-growth.selBactLim(1)+1;
-  selectedBacteria= growth.selBactLim(1):growth.selBactLim(2);
-else
-  nBact= size(bactNodes,2);
-  selectedBacteria= 1:nBact;
-end
+nBact= size(bactNodes,2);
 %} @@@ Custom @@@ %%
 
 
@@ -74,7 +67,7 @@ end
 yIdx1= max(nodeIdx)+1;  % Index of 1st y of 0th bacterium
 if bactNodesEqulength
   bactNodeN= sum(bactNodes(:,1));
-  uCoeffNorm= F(bactNodeIdx(:,selectedBacteria));
+  uCoeffNorm= F(bactNodeIdx);
   uCoeffNorm= uCoeffNorm ./ repmat( sum(uCoeffNorm) ,bactNodeN,1);
 end
 
@@ -84,7 +77,7 @@ for i= 1:size(u,2)
   yBact([1:5,7:9],:)= reshape(u(yIdx1: yIdx1+8*(nBact-1)+7, i), 8,nBact);
   % Calculate average AHL level for each bacterium
   if bactNodesEqulength
-    uBact= reshape(u(bactNodeIdx(:,selectedBacteria),i), [],nBact);
+    uBact= reshape(u(bactNodeIdx,i), [],nBact);
     yBact(6,:)= sum(uBact.*uCoeffNorm);
   else
     % Stripped for efficiency in parfor
@@ -98,11 +91,11 @@ for i= 1:size(u,2)
   dy= singlecell.model_weber(t,yBact,modelP,modelGrowth);
   ahlProd= F;
   if bactNodesEqulength
-    ahlProd(bactNodeIdx(:,selectedBacteria))= repmat(bactProdMultiplier*dy(6,:), bactNodeN,1) .* F(bactNodeIdx(:,selectedBacteria));
+    ahlProd(bactNodeIdx)= repmat(bactProdMultiplier.*dy(6,:), bactNodeN,1) .* F(bactNodeIdx);
   else
     %
     for b= 1:nBact
-      ahlProd(bactNodes(:,b))= bactProdMultiplier*dy(6,b)*F(bactNodes(:,b));
+      ahlProd(bactNodes(:,b))= bactProdMultiplier(b)*dy(6,b)*F(bactNodes(:,b));
     end
     %}
   end
