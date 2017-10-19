@@ -13,7 +13,6 @@ y= linspace(-params.viz.domLim(2,1),-params.viz.domLim(2,2),resolution(2));
 [X,Y]= meshgrid(x,y);
 
 % Slice TimeDependentResults and interpolate + integrate each slice
-tic;
 timePoints= min(params.viz.timePoints,length(result.SolutionTimes));
 t= floor(linspace(startTimeIdx,stopTimeIdx, timePoints));
 u= zeros([size(X),length(t)]);
@@ -32,5 +31,4 @@ parfor i= 1:length(t)
   total_u(i)= fewcell.util.integrate(ufun,intDomainLim,intAbsTol);
 end
 t= result.SolutionTimes(t);   % time idx -> real time
-toc;
 end

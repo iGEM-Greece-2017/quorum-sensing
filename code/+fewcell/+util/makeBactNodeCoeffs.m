@@ -46,5 +46,7 @@ function bactSubdomain= makeBactNodeCoeffs(mesh,nBact,geom)
   end
 
   bactNodeN= full(sum(bactNodes,1));
-  fprintf('Min/Max bact nodes: %d / %d\n', min(bactNodeN), max(bactNodeN));
+  if min(bactNodeN) ~= max(bactNodeN)
+    fprintf('Min/Max bact nodes: %d - %d\n', min(bactNodeN), max(bactNodeN));
+  end
 end

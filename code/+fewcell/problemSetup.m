@@ -72,15 +72,14 @@ geometryFromEdges(model,geometryDescription);
 generateMesh(model,'MesherVersion','R2013a','GeometricOrder','linear', 'Jiggle','minimum','JiggleIter',50,...
   'Hgrad',p.m.Hgrad, 'Hmax',p.g.domainLim(1) * p.m.HmaxCoeff);
 totalMeshNodes= size(model.Mesh.Nodes,2);
-fprintf('Total mesh nodes: %d\n', totalMeshNodes);
-fprintf('Total equations: %d\n', totalMeshNodes + nBact*8);
+fprintf('Mesh nodes: %d\tEquations: %d\n', totalMeshNodes, totalMeshNodes + nBact*8);
 
 % Determine bacterial nodes and faces
 bactSubdomain= fewcell.util.makeBactNodeCoeffs(model.Mesh,nBact,p.g);
 
 % Plot mesh
 if p.viz.showMesh && enableGraphics
-  figure(2); clf;
+  set(groot,'CurrentFigure',2); clf;
   pdeplot(model,'NodeLabels','off');
   %pdegplot(model, 'EdgeLabels','on','FaceLabels','on');
   axis tight;

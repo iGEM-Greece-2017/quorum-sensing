@@ -65,15 +65,18 @@ params.viz.logscaleSinglecell= false;
 params.viz.figID= [5,6,7];
 
 %% Solve
+tic;
 [params,tlist,bactRingDensity]= fewcell.initSetup(params);
 [params,model,domainVolume]= fewcell.problemSetup(params);
 fprintf('--> Solving...\n');
 result= fewcell.solveProblem(model,tlist,params);
+toc;
+save(['data/tmpresults_',num2str(params.runID),'.mat'], 'params','model','result','tlist');
 
 %% Plot solution
 % Prepare solution interpolatms.g.ringDist= 1*1e-3; params.g.layerSeparation= 1.082*1e-3;
-fprintf('--> Interpolating solution...\n');
-[AHLDistrib,x,y,interp_t,totalAHL]= fewcell.util.interpolateIntegrateAHL(model,result,params);
+fprintf('--> Interpolating solution...\n'); tic;
+[AHLDistrib,x,y,interp_t,totalAHL]= fewcell.util.interpolateIntegrateAHL(model,result,params); toc;
 % Plot
 %if params.viz.figID(1), fprintf('--> [paused] Press key to plot the solution\n'); pause; end
 fprintf('--> Plotting solution...\n');
