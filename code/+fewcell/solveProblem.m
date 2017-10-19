@@ -9,7 +9,12 @@ model.SolverOptions.ReportStatistics= 'on';
 
 % pass params to <solveTimeDependent.m> without changing all the functions in between
 global solveInternalParams;
-solveInternalParams.y0= params.solve.y0;
+nBact= size(params.g.bactCenters,1);
+if length(params.solve.y0)==8
+  solveInternalParams.y0= repmat(params.solve.y0,nBact,1);
+else
+  solveInternalParams.y0= params.solve.y0;
+end
 solveInternalParams.AbsTol_y= params.solve.AbsTol_y;
 tic;
 result= solvepde(model,tlist);

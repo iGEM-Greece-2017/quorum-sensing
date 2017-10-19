@@ -1,9 +1,6 @@
-function [p,model,tlist,domainVolume,bactRingDensity]= problemSetup(p,plotMesh)   %param
+function [p,model,domainVolume]= problemSetup(p,initConditionsFun)   %param
 % Setup all elements of the pde problem
 global enableGraphics
-%% Time
-%ntime= (p.t.tstop - p.t.tstart)+1;
-tlist= linspace(p.t.tstart, p.t.tstop, p.t.timePoints);
 %% Geometry
 domainVolume= pi*p.g.domainLim(1).^2 * p.g.domainLim(2);  % domain is actually a cylinder
 bactVolume= pi/4*p.g.bactSize(1).^2 * p.g.bactSize(2);
@@ -55,34 +52,19 @@ for b= 1:nBact
   shapes(:,b+1)= [3;4; x*[bULcorner(1); bULcorner(1)+bsize(1)]; y*[bULcorner(2); bULcorner(2)-bsize(2)]];
   names(:,b+1)= {['bact',num2str(b)]; '+'};
 end
-%
 for s= 1:size(bactAligners,1)
   bsize= p.g.bactSize;
   bULcorner= bactAligners(s,:) - [bsize(1)/2,-bsize(2)/2];   % upper left corner
   shapes(:,nBact+s+1)= [3;4; x*[bULcorner(1); bULcorner(1)+bsize(1)]; y*[bULcorner(2); bULcorner(2)-bsize(2)]];
   names(:,nBact+s+1)= {['algn',num2str(s)]; '+'};
 end
-%}
+
 % Create the description
 names{2,end}= '';
 setf= [names{:}];
 names= char(names{1,:}); names= names';
 [geometryDescription,~]= decsg(shapes,setf,names);
 
-%% Bacterial ring density
-% Calculate the number of simulated bacteria on each ring
-global bactProdMultiplier;
-[bactRingDensity, bactProdMultiplier]= fewcell.util.bactRingDensity(p.g.bactCenters(1:p.g.nRings,1),p.g, 0);
-% simulate a higher density, counteracting the spacing between bacteria
-bactRingDensity= bactRingDensity*p.g.nLayers.*bactProdMultiplier;
-bactProdMultiplier= repmat(bactProdMultiplier',p.g.nLayers,1); bactProdMultiplier= bactProdMultiplier(:)';
-totalBacteria= sum(bactRingDensity);
-if p.growth.on && p.growth.maxRings < p.g.nRings
-  totalBacteria= sum(bactRingDensity(end-p.growth.maxRings:end));
-end
-fprintf('Max bacteria: %.3g', round(totalBacteria));
-
-fewcell.setupGrowth(bactRingDensity,tlist,p)
 %% PDE
 model= createpde(1);
 geometryFromEdges(model,geometryDescription);
@@ -97,7 +79,7 @@ fprintf('Total equations: %d\n', totalMeshNodes + nBact*8);
 bactSubdomain= fewcell.util.makeBactNodeCoeffs(model.Mesh,nBact,p.g);
 
 % Plot mesh
-if plotMesh && enableGraphics
+if p.viz.showMesh && enableGraphics
   figure(2); clf;
   pdeplot(model,'NodeLabels','off');
   %pdegplot(model, 'EdgeLabels','on','FaceLabels','on');
@@ -133,4 +115,5 @@ for b=1:nBact
     'm',0,'d',dCoeff,'c',cCoeff,'a',0,'f',bactProd);
 end
 %% Initial conditions
-setInitialConditions(model,0);
+if nargin==1, initConditionsFun= 0; end
+setInitialConditions(model,initConditionsFun);

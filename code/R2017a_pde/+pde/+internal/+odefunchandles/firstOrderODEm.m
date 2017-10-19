@@ -32,13 +32,8 @@ m=femodel.B'*femodel.Mass*femodel.B;
 
 global enableSinglecellEq;
 global bactNodes;
-global growth;
 if enableSinglecellEq
-  if growth.on
-    nBact= growth.selBactLim(2)-growth.selBactLim(1)+1;
-  else
-    nBact= size(bactNodes,2);
-  end
+  nBact= size(bactNodes,2);
   m= [m; zeros(nBact*8,size(m,2))];
   m= [m, [zeros(size(m,2),nBact*8); eye(nBact*8)]];
 end

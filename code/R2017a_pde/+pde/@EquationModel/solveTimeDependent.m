@@ -22,7 +22,6 @@ femodel=pde.DynamicDiscretizedPDEModel(self,p,e,t,coefstruct,u0,tlist,tsecondOrd
   global solveInternalParams;
   global bactNodes;
   global yyResults;
-  global growth;
   
   if enableSinglecellEq, femodel.vf= 1; end
   %nBact= length(bactNodes);
@@ -85,7 +84,6 @@ else
     odeoptions = constructODEoptions(u0,rtol,atol,stats,nu,dfcn,mfcn,tsecondOrder);
 end
 
-
 %{ @@@ Custom @@@ %%
   % ODE solver options
   odeoptions.Vectorized= 'on';
@@ -96,34 +94,16 @@ end
     nY= nBact*8;  % number of extra variables
     odeoptions.AbsTol= [odeoptions.AbsTol*ones(1,length(uu0)), zeros(1,nY)];
     odeoptions.AbsTol(end-(nY-1):end)= repmat(solveInternalParams.AbsTol_y, 1,nBact);
-    if growth.on
-      uu0= [uu0;
-            repmat(solveInternalParams.y0,growth.r0*growth.nLayers,1);
-            zeros((nBact-growth.r0*growth.nLayers)*8,1)];
-    else
-      uu0= [uu0; repmat(solveInternalParams.y0,nBact,1)];
-    end
+    uu0= [uu0; solveInternalParams.y0];
   end
-  
-  growth.i= 1;
-  solution= ode15s(fcn,[tlist(1),tlist(growth.tstep(growth.i))],uu0,odeoptions);
-  tGrowthstep= 1:growth.tstep(growth.i);
-  uu= zeros(length(tlist),size(uu0,1));
-  uu(tGrowthstep,:)= deval(solution,tlist(tGrowthstep))';
-  while solution.x(end) < tlist(end)
-    uu0= fewcell.util.growthUpdateSolution(uu(tGrowthstep(end),:)',growth,bactNodes);
-    solution= odextend(solution,[],tlist(growth.tstep(growth.i+1)),uu0,odeoptions);
-    tGrowthstep= growth.tstep(growth.i)+1:growth.tstep(growth.i+1);
-    uu(tGrowthstep,:)= deval(solution,tlist(tGrowthstep))';
-    growth.i= growth.i+1;
-  end
-  
+  solution= ode15s(fcn,tlist,uu0,odeoptions);
+  uu= deval(solution,tlist)';
   if enableSinglecellEq
+    yyResults= cell(nBact,1);
     for b= 1:nBact
       % where the y variables for this bacterium start (relative to end)
       yIdx= (nBact-b+1)*8-1;
       ahl= mean(uu(:,bactNodes(:,b)),2);
-      %ahl= zeros(length(tlist),1);
       % y variables for this bacterium
       yyResults{b}= [uu(:,end-yIdx: end-yIdx+4), ahl, uu(:,end-yIdx+5: end-yIdx+7), ahl];
     end
