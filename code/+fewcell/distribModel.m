@@ -52,6 +52,7 @@ params.solve.AbsTol_y= [1e-3,1e-2,1e-2,1e-3,1e-3,  1e-6,1e-6,1e-4]*1e0;
 params.solve.AbsTol= 1e-7;    % for diffusion nodes
 params.solve.RelTol= 1e-4;
 params.solve.FeatureSize= min(params.g.bactSize)/10;
+params.solve.reportStatistics= 'on';
 
 % viz
 params.viz.showMesh= true;

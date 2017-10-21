@@ -1,15 +1,15 @@
-function [q,tstep,adapt_dr]= quantizeGC(x,q0,qsteps,min_dt)
+function [q,tstep,adapt_dr]= quantizeGC(x,q0,qsteps,min_dt0)
 % Calculates the time points where the integration should be interrupted to accomodate
 % bacterial population growth
 % <adapt_dr> is the number of initial time steps concatenated into 1
 
-  min_dt= max(min_dt,2);
   % Calculate initial quantized growth curve
   q= calcQGC(x,q0,qsteps);
   tstep= find(diff(q));
   tstep= [tstep;ones(length(qsteps)-length(tstep),1)*tstep(end)];
   adapt_dr= ones(size(tstep));
   dTstep= diff([0;tstep]);
+  min_dt= min(max(min_dt0,2),tstep(1));
   
   % Concatenate multiple growth steps, if they are too small
   while min(dTstep) < min_dt
@@ -32,8 +32,9 @@ function [q,tstep,adapt_dr]= quantizeGC(x,q0,qsteps,min_dt)
   
     % Calculate new quantized growth curve
     q= calcQGC(x,q0,qsteps);
-    tstep= find(diff(q));
-    dTstep= diff([0;tstep]);
+    %tstep= find(diff(q));
+    %dTstep= diff([0;tstep]);
+    min_dt= min(max(min_dt0,2),tstep(1));
   end
   if any(dTstep<2 & ~diff([0;(dTstep<2)]))   % if the step time drops to 1 for consecutive timesteps...
     warning('[quantizeGC]: dr too small to follow the growth curve! Consider increasing it');

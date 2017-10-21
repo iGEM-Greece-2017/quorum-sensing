@@ -85,9 +85,12 @@ else
 end
 
 %{ @@@ Custom @@@ %%
+  global countVectorized;
+  countVectorized= 0;
+
   % ODE solver options
   odeoptions.Vectorized= 'on';
-  odeoptions.Jacobian= [];
+  %odeoptions.Jacobian= [];
   odeoptions.JConstant= 'off';
   odeoptions.InitialStep= .1; %odeoptions.MaxStep= growth.minTstep;
   if enableSinglecellEq
@@ -109,6 +112,10 @@ end
     end
     uu= uu(:,1:end-nY);
   end
+  
+  jOn= ~isempty(odeoptions.Jacobian);
+  fprintf('- [j=%d] count_vectorized: %d\n', jOn, countVectorized);
+  
 %} @@@ Custom @@@ %%
 
 

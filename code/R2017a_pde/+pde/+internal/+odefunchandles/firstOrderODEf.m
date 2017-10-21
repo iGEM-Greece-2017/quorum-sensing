@@ -102,4 +102,7 @@ for i= 1:size(u,2)
   f(:,i)= [ahlProd; reshape(dy([1:5,7:9],:),[],1)];
 end
 f= f + [-K*u(nodeIdx,:); zeros(nBact*8,size(u,2))];
+
+global countVectorized;
+countVectorized= countVectorized + (size(u,2)>1);
 end

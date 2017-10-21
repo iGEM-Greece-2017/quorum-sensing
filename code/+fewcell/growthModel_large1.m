@@ -23,12 +23,12 @@ params.c.d_AHL= 7e-5;                      % [1/min]
 % geometry
 params.g.bactSize= 1e-3*[1,2.164];
 params.g.init_bactCenter0= 1e-3*[120,-1.082];
-params.g.max_nRings= 110; params.g.nLayers= 2;
+params.g.max_nRings= 1410; params.g.nLayers= 2;
 params.g.ringDist= 5;   % must be an odd number
 params.g.layerSeparation= 1;
-%params.g.domainLim= [17,5.51];       % small disk
+params.g.domainLim= [17,5.51];       % small disk
 %params.g.domainLim= [1.7, .551];     % xs
-params.g.domainLim= [1.4, .45];     % xs
+%params.g.domainLim= [1.4, .45];     % xs
 %params.g.domainLim= [.4,.1];         % tiny
 %params.g.domainLim= [20,20]*1e-3;    % tiny
 
@@ -46,9 +46,9 @@ params.growth.gc.m= 0.52;
 params.growth.gc.n= 3.5;
 % growth step params
 params.growth.r0= 2;        % How many rings of bacteria to start with
-params.growth.dr= 2;        % How many rings of bacteria to add at each growth step
-params.growth.min_dt= 15;
-params.growth.maxRings= 32;
+params.growth.dr= 4;        % How many rings of bacteria to add at each growth step
+params.growth.min_dt= 10;
+params.growth.maxRings= 90;
 
 % mesh
 params.m.Hgrad= 1.5;
@@ -69,7 +69,7 @@ params.viz.domLim= [[0;0],params.g.domainLim'./1];
 params.viz.interpResolution= 120;
 params.viz.integrateAbstol= 1;
 params.viz.timePoints= floor(params.t.timePoints/12);
-params.viz.dynamicScaling= true;
+params.viz.dynamicScaling= false;
 params.viz.logscaleSinglecell= false;
 params.viz.figID= [5,6,0];
 
@@ -101,11 +101,12 @@ for i= 1:length(growth.tstep)-1
   result{i,3}= cell(params.g.max_nRings*params.g.nLayers,1);
   result{i,3}(1:length(yyResults))= yyResults;
   result{i,3}(length(yyResults)+1:end)= {[zeros(length(tlist_step),10),ones(length(tlist_step),1)*length(yyResults)]};
+  save(['data/tmpresults_',num2str(params.runID),'.mat'], 'params','model','result','tlist');
   fprintf('--> Growth step %d done\tt=%.0f/%dsec\n', i, tlist(growth.tstep(i+1)),tlist(end));
 end
 toc;
 %}
-save(['data/tmpresults_',num2str(params.runID),'.mat'], 'params','model','result','tlist');
+%save(['data/tmpresults_',num2str(params.runID),'.mat'], 'params','model','result','tlist');
 %% Plot solution
 % Prepare solution interpolatms.g.ringDist= 1*1e-3; params.g.layerSeparation= 1.082*1e-3;
 fprintf('--> Interpolating solution...\n');
@@ -113,7 +114,7 @@ AHLDistrib= zeros(params.viz.interpResolution);
 interp_t= []; totalAHL= [];
 totalVizTimepoints= params.viz.timePoints;
 tic;
-for i= 1:55%length(growth.tstep)-1
+for i= 1:length(growth.tstep)-1
   tstep= 1:growth.tstep(i+1)-growth.tstep(i);
   tpart= (tlist(growth.tstep(i+1))-tlist(growth.tstep(i)))/(tlist(end)-tlist(1));
   params.viz.timePoints= ceil(totalVizTimepoints*tpart);
