@@ -26,8 +26,8 @@ function params= setupGrowth(bactRingDensity,tlist,params)
     % Calculate growth curve
     growth.bactN= singlecell.growthCurve(inoculumSize,tlist,params.growth.gc);
     % Calculate the time at which each growth step should occur
-    [qgc,growth.tstep]= fewcell.util.quantizeGC(growth.bactN,inoculumSize,growth.stepSize);
-    growth.tstep= [growth.tstep;length(tlist)];
+    [qgc,growth.tstep,adapt_dr]= fewcell.util.quantizeGC(growth.bactN,inoculumSize,growth.stepSize,params.growth.min_dt);
+    growth.dr= adapt_dr*growth.dr;
 
     % Plot growth curve vs quantized growth curve
     if params.viz.showGrowthCurve && enableGraphics

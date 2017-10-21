@@ -5,7 +5,7 @@ model.SolverOptions.RelativeTolerance= params.solve.RelTol;
 model.SolverOptions.ResidualTolerance= params.solve.RelTol;
 model.SolverOptions.MaxIterations= 40;
 model.SolverOptions.MinStep= params.solve.FeatureSize/20;
-model.SolverOptions.ReportStatistics= 'off';
+model.SolverOptions.ReportStatistics= params.solve.reportStatistics;
 
 % pass params to <solveTimeDependent.m> without changing all the functions in between
 global solveInternalParams;

@@ -79,7 +79,8 @@ bactSubdomain= fewcell.util.makeBactNodeCoeffs(model.Mesh,nBact,p.g);
 
 % Plot mesh
 if p.viz.showMesh && enableGraphics
-  set(groot,'CurrentFigure',2); clf;
+  try set(groot,'CurrentFigure',2); catch, figure(2); end
+  clf;
   pdeplot(model,'NodeLabels','off');
   %pdegplot(model, 'EdgeLabels','on','FaceLabels','on');
   axis tight;
