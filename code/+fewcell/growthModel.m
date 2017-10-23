@@ -8,9 +8,9 @@ params.runID= randi(2147483644);
 global enableSinglecellEq; enableSinglecellEq= true;  % false: debugging only
 global enableGraphics; enableGraphics= true;
 % time
-params.t.tstop= 60*18;   % min
+params.t.tstop= 60*16;   % min
 params.t.tstart= 0;
-params.t.timePoints= 600;
+params.t.timePoints= 900;
 % coefficients
 %params.c.c_agar= 7.1e-5*60;                 % [mm^2/min]
 params.c.c_agar= 25e-5*60;                 % [mm^2/min]
@@ -20,8 +20,8 @@ params.c.d_AHL= 7e-5;                      % [1/min]
 
 % geometry
 params.g.bactSize= 1e-3*[1,2.164];
-params.g.init_bactCenter0= 1e-3*[300,-1.082];
-params.g.max_nRings= 50; params.g.nLayers= 2;
+params.g.init_bactCenter0= 1e-3*[200,-1.082];
+params.g.max_nRings= 62; params.g.nLayers= 2;
 params.g.ringDist= 5;   % must be an odd number
 params.g.layerSeparation= 1;
 %params.g.domainLim= [17,5.51];       % small disk
@@ -44,7 +44,8 @@ params.growth.gc.m= 0.52;
 params.growth.gc.n= 3.5;
 % growth step params
 params.growth.r0= 2;      % How many rings of bacteria to start with
-params.growth.dr= 8;      % How many rings of bacteria to add at each growth step
+params.growth.dr= 4;      % How many rings of bacteria to add at each growth step
+params.growth.min_dt= 30;
 params.growth.maxRings= 80;
 
 % mesh
@@ -55,7 +56,7 @@ params.solve.y0= [1.5347;0;0;0;0; 0;0;0];  % [nM]
 % solve
 params.solve.AbsTol_y= [1e-3,1e-2,1e-2,1e-3,1e-3,  1e-6,1e-6,1e-4]*1e0;
 params.solve.AbsTol= 1e-7;    % for diffusion nodes
-params.solve.RelTol= 1e-4;
+params.solve.RelTol= 1e-3;
 params.solve.FeatureSize= min(params.g.bactSize)/10;
 params.solve.reportStatistics= 'off';
 
@@ -74,7 +75,7 @@ params.viz.figID= [5,6,0];
 global growth;
 global yyResults;
 [params,tlist,bactRingDensity]= fewcell.initSetup(params);
-growth.tstep= [1;growth.tstep];
+growth.tstep= [1;growth.tstep;length(tlist)];
 initConditions= 0;
 result= cell(length(growth.tstep)-1,3);
 model= cell(length(growth.tstep)-1,1);
@@ -91,15 +92,18 @@ for i= 1:length(growth.tstep)-1
   end
   % Create the new geometry
   [params,model{i},domainVolume]= fewcell.problemSetup(params,initConditions);
+  tic;
   result{i,1}= fewcell.solveProblem(model{i},tlist_step,params);
+  toc;
   result{i,2}= cellfun(@(x) x(end,[1:5,7:9])', yyResults, 'UniformOutput',0); result{i,2}= [result{i,2}{:}];
   result{i,3}= cell(params.g.max_nRings*params.g.nLayers,1);
   result{i,3}(1:length(yyResults))= yyResults;
   result{i,3}(length(yyResults)+1:end)= {[zeros(length(tlist_step),10),ones(length(tlist_step),1)*length(yyResults)]};
-  fprintf('--> Growth step %d done\tt=%.0f/%dsec\n', i, tlist(growth.tstep(i)),tlist(end));
+  %save(['data/tmpresults_',num2str(params.runID),'.mat'], 'params','model','result','tlist');
+  fprintf('--> Growth step %d done\tt=%.0f/%dmin\n', i, tlist(growth.tstep(i+1)),tlist(end));
 end
-
 toc;
+%}
 save(['data/tmpresults_',num2str(params.runID),'.mat'], 'params','model','result','tlist');
 %% Plot solution
 % Prepare solution interpolatms.g.ringDist= 1*1e-3; params.g.layerSeparation= 1.082*1e-3;

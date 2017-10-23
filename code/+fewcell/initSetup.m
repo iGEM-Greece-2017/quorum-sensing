@@ -1,12 +1,18 @@
 function [params,tlist,bactRingDensity_allRings]= initSetup(params)
   tlist= linspace(params.t.tstart, params.t.tstop, params.t.timePoints);
   % Update parameters
-  params.g.nRings= params.growth.r0;
-  params.g.bactCenter0= params.g.init_bactCenter0;
-  params.g.startRingIdx= 1;
+  if params.growth.on
+    params.g.nRings= params.growth.r0;
+    params.g.bactCenter0= params.g.init_bactCenter0;
+    params.g.startRingIdx= 1;
+  end
   % Calculate the number of simulated bacteria on each ring
   global bactProdMultiplier;
-  ringX= params.g.init_bactCenter0(1)+(0:params.g.max_nRings-1)'*params.g.ringDist*params.g.bactSize(1);
+  if params.growth.on
+    ringX= params.g.init_bactCenter0(1)+(0:params.g.max_nRings-1)'*params.g.ringDist*params.g.bactSize(1);
+  else
+    ringX= params.g.bactCenter0(1)+(0:params.g.nRings-1)'*params.g.ringDist*params.g.bactSize(1);
+  end
   [bactRingDensity_allRings,bactProdMultiplier]= fewcell.util.bactRingDensity(ringX,params.g,0);
   % simulate a higher density, counteracting the spacing between bacteria
   bactRingDensity_allRings= bactRingDensity_allRings*params.g.nLayers.*bactProdMultiplier;

@@ -15,6 +15,7 @@ global bactProdMultiplier;  % multiplies each bacterium's AHL change, to simulat
 nBact= size(bactNodes,2);
 %} @@@ Custom @@@ %%
 
+
 if ~(femodel.vq || femodel.vg || femodel.vh || femodel.vr || ...
         femodel.vc || femodel.va || femodel.vf)
   if enableSinglecellEq, u= u(1:end-nBact*8,:); end
@@ -56,7 +57,6 @@ if ~(femodel.vh || femodel.vr)
 else
   error('[firstOrderODEf]: code has been stripped!');
 end
-
 %% @@@ Custom @@@ %%
 if ~enableSinglecellEq    
   error('[firstOrderODEf]: code has been stripped!');
@@ -101,4 +101,5 @@ for i= 1:size(u,2)
   f(:,i)= [ahlProd; reshape(dy([1:5,7:9],:),[],1)];
 end
 f= f + [-K*u(nodeIdx,:); zeros(nBact*8,size(u,2))];
+
 end

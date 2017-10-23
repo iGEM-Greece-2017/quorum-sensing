@@ -1,19 +1,11 @@
-function df=firstOrderODEdf(t,u)
+function df=firstOrderODEdf_noGlobal(t,u,femodel,enableSinglecellEq,bactNodesEqulength,bactNodes,bactNodeIdx,bactProdMultiplier)
 %firstOrderODEdf - Jacobian function for first-order ODE system
 %Computes jacobian of discretized PDE with first-order time derivative.
 %This undocumented function may be removed in a future release.
 %
 %       Copyright 2015-2016 The MathWorks, Inc.
 
-global femodel
-%{ @@@ Custom @@@ %%
-global enableSinglecellEq;
-global bactNodesEqulength;
-global bactNodes;
-global bactNodeIdx;
-global bactProdMultiplier;  % multiplies each bacterium's AHL change, to simulate a denser bacterial population
 nBact= size(bactNodes,2);
-%} @@@ Custom @@@ %%
 
 if ~(femodel.vq || femodel.vg || femodel.vh || femodel.vr || femodel.vc || femodel.va || femodel.vf)
   df=-femodel.K;

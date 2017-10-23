@@ -86,9 +86,7 @@ for i= 1:1%size(u,2)
   for b= 1:nBact
     bIdx= (b-1)*8+1:b*8;
     dndy(bactNodes(:,b),bIdx)= femodel.F(bactNodes(:,b)).*bactProdMultiplier(b).*j(6,[1:5,7:9],b);
-    %dndy(bactNodes(:,b),bIdx)= femodel.F(bactNodes(:,b)).*j(6,[1:5,7:9],b);
-    %dydn(bIdx,bactNodes(:,b))= j([1:5,7:9],6,b)*femodel.F(bactNodes(:,b))';
-    dydn(bIdx,bactNodes(:,b))= j([1:5,7:9],6,b)*uCoeffNorm(:,b)';
+    dydn(bIdx,bactNodes(:,b))= j([1:5,7:9],6,b)*femodel.F(bactNodes(:,b))';
     dydy(bIdx, bIdx)= j([1:5,7:9],[1:5,7:9],b);
   end
 end

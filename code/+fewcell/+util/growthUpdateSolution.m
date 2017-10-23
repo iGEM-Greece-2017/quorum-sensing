@@ -1,4 +1,4 @@
-function params= growthUpdateSolution(i,params,result)
+function params= growthUpdateSolution(i,params,u)
 % Update geometry parameters and init condition
 % Geometry:
 % - Grow new bacteria: increase nRings
@@ -15,7 +15,6 @@ function params= growthUpdateSolution(i,params,result)
   
   % Init conditions
   nBact= params.g.nRings * params.g.nLayers;
-  u= result{2};
   rNewSel= params.g.startRingIdx:params.g.startRingIdx+params.g.nRings-1;
   % Calculate dilution coefficient
   n1= sum(growth.bactRingDensity(rPrevSel)*growth.nLayers);

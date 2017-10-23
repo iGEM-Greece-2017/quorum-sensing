@@ -1,19 +1,11 @@
-function f=firstOrderODEf(t,u)
+function f=firstOrderODEf_noGlobal(t,u,femodel,enableSinglecellEq,bactNodesEqulength,bactNodes,bactNodeIdx,bactProdMultiplier)
 %firstOrderODEf - Residue function for first-order ODE system
 %Computes residue of discretized PDE with first-order time derivative.
 %This undocumented function may be removed in a future release.
 %
 %       Copyright 2015-2016 The MathWorks, Inc.
 
-global femodel
-%{ @@@ Custom @@@ %%
-global enableSinglecellEq;
-global bactNodesEqulength;
-global bactNodes;
-global bactNodeIdx;
-global bactProdMultiplier;  % multiplies each bacterium's AHL change, to simulate a denser bacterial population
 nBact= size(bactNodes,2);
-%} @@@ Custom @@@ %%
 
 if ~(femodel.vq || femodel.vg || femodel.vh || femodel.vr || ...
         femodel.vc || femodel.va || femodel.vf)
@@ -59,7 +51,8 @@ end
 
 %% @@@ Custom @@@ %%
 if ~enableSinglecellEq    
-  error('[firstOrderODEf]: code has been stripped!');
+  f= -K*u(nodeIdx,:);
+  return;
 end
 
 [modelP,modelGrowth]= singlecell.modelCoeffs_weber(ones(11,1),false,false);
