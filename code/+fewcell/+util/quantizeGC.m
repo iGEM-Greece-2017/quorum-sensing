@@ -1,12 +1,12 @@
-function [q,tstep,adapt_dr]= quantizeGC(x,q0,qsteps,min_dt0)
+function [q,tstep,adapt_dr]= quantizeGC(x,qLevels,min_dt0)
 % Calculates the time points where the integration should be interrupted to accomodate
 % bacterial population growth
 % <adapt_dr> is the number of initial time steps concatenated into 1
 
   % Calculate initial quantized growth curve
-  q= calcQGC(x,q0,qsteps);
+  q= calcQGC(x,qLevels);
   tstep= find(diff(q));
-  tstep= [tstep;ones(length(qsteps)-length(tstep),1)*tstep(end)];
+  tstep= [tstep;ones(length(qLevels)-1-length(tstep),1)*tstep(end)];
   adapt_dr= ones(size(tstep));
   dTstep= diff([0;tstep]);
   min_dt= min(max(min_dt0,2),tstep(1));
@@ -21,7 +21,8 @@ function [q,tstep,adapt_dr]= quantizeGC(x,q0,qsteps,min_dt0)
         concatFlag= true;
       end
       if concatFlag && tstep(t) - tstep(t1) > min_dt
-        qsteps= [qsteps(1:t1-1),sum(qsteps(t1:t-1)),qsteps(t:end)];
+        %qsteps= [qsteps(1:t1-1),sum(qsteps(t1:t-1)),qsteps(t:end)];
+        qLevels= [qLevels(1:t1);qLevels(t:end)];
         adapt_dr= [adapt_dr(1:t1-1);sum(adapt_dr(t1:t-1));adapt_dr(t:end)];
         tstep= [tstep(1:t1);tstep(t:end)];
         dTstep= diff([0;tstep]);
@@ -32,7 +33,7 @@ function [q,tstep,adapt_dr]= quantizeGC(x,q0,qsteps,min_dt0)
     end
   
     % Calculate new quantized growth curve
-    q= calcQGC(x,q0,qsteps);
+    q= calcQGC(x,qLevels);
     %tstep= find(diff(q));
     %dTstep= diff([0;tstep]);
     min_dt= min(max(min_dt0,2),tstep(1));
@@ -45,8 +46,7 @@ function [q,tstep,adapt_dr]= quantizeGC(x,q0,qsteps,min_dt0)
   %fprintf('Quantization mre: %.2f%%\n', mean((x-q)./x)*100);
 end
 
-function q= calcQGC(x,q0,qsteps)
-  qLevels= cumsum([q0,qsteps]);
+function q= calcQGC(x,qLevels)
   q= x;
   qi= 1;
   for t= 1:length(x)

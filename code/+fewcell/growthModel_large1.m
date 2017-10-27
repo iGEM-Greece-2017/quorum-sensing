@@ -10,7 +10,7 @@ params.runName= "Small disk, growth, few growth.maxrings";
 global enableSinglecellEq; enableSinglecellEq= true;  % false: debugging only
 global enableGraphics; enableGraphics= true;
 % time
-params.t.tstop= 60*20;   % min
+params.t.tstop= 60*18;   % min
 params.t.tstart= 0;
 params.t.timePoints= 1200;
 % coefficients
@@ -47,8 +47,8 @@ params.growth.gc.n= 3.5;
 % growth step params
 params.growth.r0= 2;        % How many rings of bacteria to start with
 params.growth.dr= 6;        % How many rings of bacteria to add at each growth step
-params.growth.min_dt= 30;
-params.growth.maxRings= 120;
+params.growth.min_dt= 35;
+params.growth.maxRings= 220;
 
 % mesh
 params.m.Hgrad= 1.5;
@@ -56,8 +56,8 @@ params.m.HmaxCoeff= 1/12;
 % init
 params.solve.y0= [1.5347;0;0;0;0; 0;0;0];  % [nM]
 % solve
-params.solve.AbsTol_y= [1e-3,1e-2,1e-2,1e-3,1e-3,  1e-6,1e-6,1e-4]*1e1;
-params.solve.AbsTol= 1e-6;    % for diffusion nodes
+params.solve.AbsTol_y= [1e-3,1e-2,1e-2,1e-3,1e-3,  1e-6,1e-6,1e-4]*1e0;
+params.solve.AbsTol= 1e-7;    % for diffusion nodes
 params.solve.RelTol= 1e-2;
 params.solve.FeatureSize= min(params.g.bactSize);
 params.solve.reportStatistics= 'on';
@@ -74,37 +74,9 @@ params.viz.logscaleSinglecell= false;
 params.viz.figID= [5,6,0];
 
 %% Solve
-global growth;
-global yyResults;
 [params,tlist,bactRingDensity]= fewcell.initSetup(params);
-growth.tstep= [1;growth.tstep;length(tlist)];
-initConditions= 0;
-result= cell(length(growth.tstep)-1,2);
-model= cell(length(growth.tstep)-1,1);
-fprintf('--> Solving...\n');
-tic;
-for i= 1:length(growth.tstep)-1
-  tlist_step= tlist(growth.tstep(i):growth.tstep(i+1));
-  % Update both init conditions (solve.y0) and geometry (bactCenter0, nRings)
-  if i>1
-    params= fewcell.util.growthUpdateSolution(i,params,bactEndState);
-    % function_handle to results_interpolant
-    result_tend= util.sliceResult(model{i-1},result{i-1,1},length(result{i-1,1}.SolutionTimes));
-    initConditions= @(loc) reshape(interpolateSolution(result_tend, loc.x,loc.y), size(loc.x));
-  end
-  % Create the new geometry
-  [params,model{i},domainVolume]= fewcell.problemSetup(params,initConditions);
-  tic;
-  result{i,1}= fewcell.solveProblem(model{i},tlist_step,params);
-  toc;
-  bactEndState= cellfun(@(x) x(end,[1:5,7:9])', yyResults, 'UniformOutput',0); bactEndState= [bactEndState{:}];
-  result{i,2}= cell(params.g.max_nRings*params.g.nLayers,1);
-  result{i,2}(1:length(yyResults))= yyResults;
-  result{i,2}(length(yyResults)+1:end)= {[zeros(length(tlist_step),10),ones(length(tlist_step),1)*length(yyResults)]};
-  save(['data/tmpresults_',num2str(params.runID),'.mat'], 'params','model','result','tlist');
-  fprintf('--> Growth step %d done\tt=%.0f/%dmin\n', i, tlist(growth.tstep(i+1)),tlist(end));
-end
-toc;
+[result,model]= fewcell.solveGrowthModel(params);
+finalPointSaved= find(cellfun(@(x)~isempty(x),result(:,1)),1,'last');
 %}
 %save(['data/tmpresults_',num2str(params.runID),'.mat'], 'params','model','result','tlist');
 %% Plot solution
@@ -113,9 +85,11 @@ fprintf('--> Interpolating solution...\n');
 AHLDistrib= zeros(params.viz.interpResolution);
 interp_t= []; totalAHL= [];
 totalVizTimepoints= params.viz.timePoints;
+global growth;
+global yyResults;
 yyResults= cellfun(@(x) x(1,:), result{1,2}, 'uniformoutput',0);
 tic;
-for i= 1:5%length(growth.tstep)-1
+for i= 1:finalPointSaved
   tstep= 1:growth.tstep(i+1)-growth.tstep(i);
   tpart= (tlist(growth.tstep(i+1))-tlist(growth.tstep(i)))/(tlist(end)-tlist(1));
   params.viz.timePoints= ceil(totalVizTimepoints*tpart);

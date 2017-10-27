@@ -17,7 +17,7 @@ function [params,tlist,bactRingDensity_allRings]= initSetup(params)
   % simulate a higher density, counteracting the spacing between bacteria
   bactRingDensity_allRings= bactRingDensity_allRings*params.g.nLayers.*bactProdMultiplier;
   totalBacteria= sum(bactRingDensity_allRings);
-  if params.growth.on && params.growth.maxRings < params.g.nRings
+  if params.growth.on && params.growth.maxRings < params.g.max_nRings
     totalBacteria= sum(bactRingDensity_allRings(end-params.growth.maxRings:end));
   end
   fprintf('Bacteria: %.3g', round(totalBacteria));

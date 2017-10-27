@@ -97,6 +97,7 @@ end
     odeoptions.AbsTol(end-(nY-1):end)= repmat(solveInternalParams.AbsTol_y, 1,nBact);
     uu0= [uu0; solveInternalParams.y0];
   end
+  %odeoptions.RelTol= [];
   
   %% Sparse Jacobian
   %testInput= 2*rand(size(uu0))+1;
@@ -110,17 +111,19 @@ end
   %nElt= [0,10*16+1];
   %while nElt(end) - nElt(1) > 10*16
     JPatternNode= JPattern(1:nNode,1:nNode);
-    parfor i= 1:4
+    parfor i= 1:2
       testInput= 2*rand(size(u0))+u0+1;
       JPatternNode= JPatternNode | (pde.odenumjac(fcnJ,{1,testInput},fcnJ(1,testInput),jOpt) ~= 0);
       %JPattern= JPattern | dfJ(1,testInput);
     end
+    JPattern(1:nNode,1:nNode)= JPatternNode;
     %nElt= [nElt(2:end),nnz(JPattern)]
   %end
   %}
   odeoptions.JPattern= JPattern;
   %% Solve
   solution= ode15s(fcn,tlist,uu0,odeoptions);
+  assert(tlist(end) <= solution.x(end));
   uu= deval(solution,tlist)';
   if enableSinglecellEq
     yyResults= cell(nBact,1);
