@@ -10,7 +10,7 @@ params.runName= "Small disk, growth, few growth.maxrings";
 global enableSinglecellEq; enableSinglecellEq= true;  % false: debugging only
 global enableGraphics; enableGraphics= true;
 % time
-params.t.tstop= 60*18;   % min
+params.t.tstop= 60*24;   % min
 params.t.tstart= 0;
 params.t.timePoints= 1200;
 % coefficients
@@ -23,7 +23,7 @@ params.c.d_AHL= 7e-5;                      % [1/min]
 % geometry
 params.g.bactSize= 1e-3*[1,2.164];
 params.g.init_bactCenter0= 1e-3*[120,-1.082];
-params.g.max_nRings= 1544; params.g.nLayers= 2;
+params.g.max_nRings= 1652; params.g.nLayers= 2;
 params.g.ringDist= 5;         % must be an odd number
 params.g.layerSeparation= 1;
 params.g.domainLim= [17,5.51];       % small disk
@@ -48,7 +48,7 @@ params.growth.gc.n= 3.5;
 params.growth.r0= 2;        % How many rings of bacteria to start with
 params.growth.dr= 6;        % How many rings of bacteria to add at each growth step
 params.growth.min_dt= 35;
-params.growth.maxRings= 220;
+params.growth.maxRings= 300;
 
 % mesh
 params.m.Hgrad= 1.5;
@@ -56,9 +56,9 @@ params.m.HmaxCoeff= 1/12;
 % init
 params.solve.y0= [1.5347;0;0;0;0; 0;0;0];  % [nM]
 % solve
-params.solve.AbsTol_y= [1e-3,1e-2,1e-2,1e-3,1e-3,  1e-6,1e-6,1e-4]*1e0;
-params.solve.AbsTol= 1e-7;    % for diffusion nodes
-params.solve.RelTol= 1e-2;
+params.solve.AbsTol_y= [1e-3,2e-3,2e-3,5e-3,5e-3,  2e-3,2e-3,1e-3]*1e0;
+params.solve.AbsTol= 1e-4;    % for diffusion nodes
+params.solve.RelTol= 1e-3;
 params.solve.FeatureSize= min(params.g.bactSize);
 params.solve.reportStatistics= 'on';
 
@@ -75,7 +75,7 @@ params.viz.figID= [5,6,0];
 
 %% Solve
 [params,tlist,bactRingDensity]= fewcell.initSetup(params);
-[result,model]= fewcell.solveGrowthModel(params);
+[result,model]= fewcell.solveGrowthModel(params,tlist);
 finalPointSaved= find(cellfun(@(x)~isempty(x),result(:,1)),1,'last');
 %}
 %save(['data/tmpresults_',num2str(params.runID),'.mat'], 'params','model','result','tlist');

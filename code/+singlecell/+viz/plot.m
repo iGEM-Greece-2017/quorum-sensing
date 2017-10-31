@@ -1,6 +1,11 @@
 function plot(t,y, figID,logplot)
 
 t_h= t/60;
+if logplot      % cutoff log plots at a minimum value
+  logCutoff= 10.^(log10(max(y(:,[1,4,5,8,9]),[],1)) - [6,4,4,6,6]);
+  y(:,[1,4,5,8,9])= max(y(:,[1,4,5,8,9]), logCutoff);
+end
+
 figure(figID); clf;
 subplot(221);
 if ~logplot, yyaxis left; plot(t_h, y(:,1)); ylabel('c [nM]'); axis tight;

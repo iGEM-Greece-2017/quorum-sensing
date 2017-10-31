@@ -1,4 +1,4 @@
-function [p,growth]= modelCoeffs_weber(y,growthOn,diffusionOn)
+function [p,growth]= modelCoeffs_weber(y,N0,growthOn,diffusionOn)
   %[Kd1,k1_,Kd2,k2_,kA,Kdlux,klux_,kR,kI,        ...
   %        pR,pI,alphaR,alphaI,dA,dC2,dC,dR,dI,dmR,dmI, ...
   %        D,dilution,growth,                           ...
@@ -31,7 +31,7 @@ p.D=      10;    % membrane permeability
 taf=      45;    %[min]
 %lamda=  .8;
 %V0=     1.5*1e-9;   %[mm3]
-Vtot=     2e-4;   %[mm3]
+Vtot=     5000;   %[mm3]
 
 % Perhaps the translation rate should be scaled by <r_current/r_paper>, as ribosome count
 % is directly related to division rate? (metabolic capacity model)
@@ -46,9 +46,9 @@ cellDNA= 1.5347;   % amount of DNA per cell
 
 % Growth model constants (logistic++)
 %growth.r= r_paper;              % /60: time multiplier (hour->min)
-growth.r= 2.2/60;
+growth.r= 1.5/60;
 growth.m= 0.52; growth.n= 3.5;
-growth.Nmax= 5*10^(8);
+growth.Nmax= 1*10^(8.9);
 %growth.Nmin= N0*(1-1e-6);
 growth.Nmin= 0;   % disregard lag phase
 
@@ -61,9 +61,10 @@ p.D= diffusionOn*p.D;     % enable/disable internal diffusion, to accomodate pde
 %Vcelltot= V0_mean*growth.Nmax*Vtot/1e3;
 %p.colonyD= p.D*growth.Nmax;
 
-Vcelltot= V0_mean;
+Vcelltot= V0_mean*y(11);
 p.colonyD= p.D;
-Vcolony= 4.5889e-8;
+%Vcolony= 4.5889e-8;
+Vcolony= Vtot;
 
 % total colony size
 %Vcolony= Vcelltot*packingFactor^3*colonyHalo^3;
@@ -79,11 +80,18 @@ p.dilution= Vcelltot/(Vcolony-Vcelltot);
 growth.p1= 1-(y(11)./growth.Nmax).^growth.m;
 growth.p2= 1-(growth.Nmin./y(11)).^growth.n;
 growth.dN= growthOn*growth.r*y(11)*growth.p1*growth.p2;
+if p.dilution > 9
+  p.dilution= 9;
+  growth.dN= 0;
+end
 growth.divRate= growth.dN ./ y(11);
 growth.rateScaling= growth.divRate ./ r_paper;
-%growth.dN= 0;
+
+  %growth.dN= 0;
 %growth.divRate= growth.r;
 %% Metabolic capacity model
 % Simple, hypothetical model
 %metabolicCapacity= max(0.6,growth.rateScaling);
 %pI= pI * metabolicCapacity; pR= pR * metabolicCapacity;
+
+

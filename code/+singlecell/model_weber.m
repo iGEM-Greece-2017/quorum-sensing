@@ -23,7 +23,6 @@ dy(8,:)= p.k2_/p.Kd2*y(7,:).^2 -p.k2_*y(8,:) -p.klux_/p.Kdlux*y(8,:).*y(1,:) +p.
 dy(9,:)= p.klux_/p.Kdlux*y(8,:).*y(1,:) -p.klux_*y(9,:) -growth.divRate*y(9,:);
 dy(11,:)= growth.dN;
 
-
 % Proteins match up to mRNA numbers! Ref:
 % - http://book.bionumbers.org/how-many-proteins-are-made-per-mrna-molecule/
 end

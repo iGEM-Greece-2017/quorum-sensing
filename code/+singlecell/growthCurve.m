@@ -1,5 +1,5 @@
 function n= growthCurve(n0,tlist, growthParams)
-  opt= odeset('RelTol',1e-5,'InitialStep',1e-3);
+  opt= odeset('RelTol',1e-7,'InitialStep',1e-3);
   [~,n]= ode15s(@(t,y)growthWrapper(t,y,growthParams),tlist,n0,opt);
 end
 

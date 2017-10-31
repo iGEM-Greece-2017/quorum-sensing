@@ -28,7 +28,7 @@ end
 % Singlecell plot
 global yyResults;
 if params.figID(2)>0 && enableGraphics
-  singlecell.viz.plot(tlist, yyResults{60}, params.figID(2),params.logscaleSinglecell);
+  singlecell.viz.plot(tlist, yyResults{103}, params.figID(2),params.logscaleSinglecell);
 end
 
 % Nodal solution

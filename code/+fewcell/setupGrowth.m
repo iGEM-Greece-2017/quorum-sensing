@@ -35,6 +35,7 @@ function params= setupGrowth(bactRingDensity,tlist,params)
     % Growth curve params
     inoculumSize= growthLevels(1);
     params.growth.gc.Nmax= growthLevels(end);
+    %params.growth.gc.Nmin= inoculumSize*(1-1e-6);
     params.growth.gc.Nmin= 0;   % disregard lag phase
     % Calculate growth curve
     growth.bactN= singlecell.growthCurve(inoculumSize,tlist,params.growth.gc);

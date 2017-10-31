@@ -97,7 +97,6 @@ end
     odeoptions.AbsTol(end-(nY-1):end)= repmat(solveInternalParams.AbsTol_y, 1,nBact);
     uu0= [uu0; solveInternalParams.y0];
   end
-  %odeoptions.RelTol= [];
   
   %% Sparse Jacobian
   %testInput= 2*rand(size(uu0))+1;
@@ -105,18 +104,24 @@ end
   JPattern= (speye(length(uu0))==1) | pde.internal.odefunchandles.firstOrderODEdf(1,testInput);   % init
   %
   global bactNodesEqulength; global bactNodeIdx; global bactProdMultiplier;
-  fcnJ= @(t,u)pde.firstOrderODEf_noGlobal(t,u,femodel,false,bactNodesEqulength,bactNodes,bactNodeIdx,bactProdMultiplier);
+  fcnJ= @(t,u)pde.firstOrderODEf_noGlobal(t,u,femodel,true,bactNodesEqulength,bactNodes,bactNodeIdx,bactProdMultiplier);
   %dfJ= @(t,u)pde.firstOrderODEdf_noGlobal(t,u,femodel,enableSinglecellEq,bactNodesEqulength,bactNodes,bactNodeIdx,bactProdMultiplier);
-  jOpt= struct('diffvar',2,'vectvars',2,'thresh',odeoptions.AbsTol(1:nNode)','fac',[]);
+  jOpt= struct('diffvar',2,'vectvars',2,'thresh',odeoptions.AbsTol','fac',[]);
   %nElt= [0,10*16+1];
   %while nElt(end) - nElt(1) > 10*16
-    JPatternNode= JPattern(1:nNode,1:nNode);
     parfor i= 1:2
-      testInput= 2*rand(size(u0))+u0+1;
-      JPatternNode= JPatternNode | (pde.odenumjac(fcnJ,{1,testInput},fcnJ(1,testInput),jOpt) ~= 0);
+      if i==1         % QS transition start
+        test_y0= [1.365;4.186;1.137;196.5;621.7; 23.18;25.00;0.1697];
+        test_AHL= 3.801;
+      else            % QS transition end
+        test_y0= [0.0281;43.40;10.85;5897;18800; 466.0;10740;1.5066];
+        test_AHL= 2.603;
+      end
+      testInput= [test_AHL*ones(size(u0))+rand(size(u0)); repmat(test_y0,nBact,1)]; 
+      JPattern= JPattern | (pde.odenumjac(fcnJ,{1,testInput},fcnJ(1,testInput),jOpt) ~= 0);
       %JPattern= JPattern | dfJ(1,testInput);
     end
-    JPattern(1:nNode,1:nNode)= JPatternNode;
+    %JPattern(1:nNode,1:nNode)= JPatternNode;
     %nElt= [nElt(2:end),nnz(JPattern)]
   %end
   %}

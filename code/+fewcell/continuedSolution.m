@@ -4,21 +4,20 @@ matlab_start;
 %% Parameters
 %load('data/results/final/tmpresults_677792149.mat');
 %load('data/tmpresults_353316463.mat');
-load('data/tmpresults_1527163184.mat');
+load(['data/tmpresults_',num2str(params.runID),'.mat']);
 global enableSinglecellEq; enableSinglecellEq= true;  % false: debugging only
 global enableGraphics; enableGraphics= true;
 
-params.solve.AbsTol_y= [1e-3,1e-2,1e-2,1e-3,1e-3,  1e-6,1e-6,1e-4]*1e-1;
-params.solve.AbsTol= 1e-8;    % for diffusion nodes
-params.solve.RelTol= 1e-2;
+params.solve.AbsTol_y= [1e-3,2e-3,2e-3,5e-3,5e-3,  2e-3,2e-3,1e-3]*1e-1;
+params.solve.AbsTol= 1e-7;    % for diffusion nodes
 
 %% Solve
 global growth;
 global yyResults;
 try growth= growthLoc; end
+growth.tstep(end)= length(tlist);
 [result,model]= fewcell.solveGrowthModel(params,tlist,{result,model});
 finalPointSaved= find(cellfun(@(x)~isempty(x),result(:,1)),1,'last');
-%}
 %save(['data/tmpresults_',num2str(params.runID),'.mat'], 'params','model','result','tlist');
 %% Plot solution
 % Prepare solution interpolatms.g.ringDist= 1*1e-3; params.g.layerSeparation= 1.082*1e-3;

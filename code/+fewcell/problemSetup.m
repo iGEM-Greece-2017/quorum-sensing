@@ -101,8 +101,10 @@ applyBoundaryCondition(model, 'neumann', 'Edge',1:numEdges,'g',0,'q',0);
 dCoeff= @(r,s)r.x;
 cCoeff= @(r,s)p.c.c_agar*r.x;
 aCoeff= @(r,s)p.c.d_AHL*r.x;
-domainFaces= setdiff((1:model.Geometry.NumFaces), bactSubdomain);
-specifyCoefficients(model,'Face',domainFaces,'m',0,'d',dCoeff,'c',cCoeff,'a',aCoeff,'f',0);
+specifyCoefficients(model,'Face',1,'m',0,'d',dCoeff,'c',cCoeff,'a',aCoeff,'f',0);   % Actual domain face
+cCoeff= @(r,s)p.c.c_cytoplasm*r.x;
+domainSubfaces= setdiff((2:model.Geometry.NumFaces), bactSubdomain);
+specifyCoefficients(model,'Face',domainSubfaces,'m',0,'d',dCoeff,'c',cCoeff,'a',0,'f',0);  % pseudo-bacteria
 for b=1:nBact
   %bactProd= @(r,s)(10*s.u+(1e1*(s.time<2)));
   %bactProd= @(r,s)(1*(s.time==tstart));

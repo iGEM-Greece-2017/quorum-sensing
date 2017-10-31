@@ -62,7 +62,7 @@ dydn= zeros(8*nBact,length(nodeIdx));
 % 4: dy'/dy
 dydy= zeros(8*nBact);
 
-[modelP,modelGrowth]= singlecell.modelCoeffs_weber(ones(11,1),false,false);
+[modelP,modelGrowth]= singlecell.modelCoeffs_weber(ones(11,1),1,false,false);
 yIdx1= max(nodeIdx)+1;  % Index of 1st y of 0th bacterium
 if bactNodesEqulength
   bactNodeN= sum(bactNodes(:,1));

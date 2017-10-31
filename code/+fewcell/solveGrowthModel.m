@@ -6,18 +6,19 @@ if nargin==3
   model= continued{2};
   finalPointSaved= find(cellfun(@(x)~isempty(x),result(:,1)),1,'last');
   bactStart= (params.g.startRingIdx-1)*params.g.nLayers+1;
-  yyResults= result{finalPointSaved,2}(bactStart: bactStart+length(yyResults)-1);
+  yyResults= result{finalPointSaved,2}(bactStart: bactStart+params.g.nRings*params.g.nLayers-1);
   bactEndState= cellfun(@(x) x(end,[1:5,7:9])', yyResults, 'UniformOutput',0); bactEndState= [bactEndState{:}];
 else
   growth.tstep= [1;growth.tstep;length(tlist)];
   result= cell(length(growth.tstep)-1,2);
   model= cell(length(growth.tstep)-1,1);
-  finalPointSaved= 1;
+  finalPointSaved= 0;
 end
 initConditions= 0;
+
 fprintf('--> Solving...\n');
 tic;
-for i= finalPointSaved:length(growth.tstep)-1
+for i= finalPointSaved+1:length(growth.tstep)-1
   tlist_step= tlist(growth.tstep(i):growth.tstep(i+1));
   % Update both init conditions (solve.y0) and geometry (bactCenter0, nRings)
   if i>1
@@ -27,10 +28,10 @@ for i= finalPointSaved:length(growth.tstep)-1
     initConditions= @(loc) reshape(interpolateSolution(result_tend, loc.x,loc.y), size(loc.x));
   end
   % Create the new geometry
-  tic;
+  tStartStep= tic;
   [params,model{i},domainVolume]= fewcell.problemSetup(params,initConditions);
   result{i,1}= fewcell.solveProblem(model{i},tlist_step,params);
-  toc;
+  toc(tStartStep);
   bactEndState= cellfun(@(x) x(end,[1:5,7:9])', yyResults, 'UniformOutput',0); bactEndState= [bactEndState{:}];
   result{i,2}= cell(params.g.max_nRings*params.g.nLayers,1);
   bactStart= (params.g.startRingIdx-1)*params.g.nLayers+1;

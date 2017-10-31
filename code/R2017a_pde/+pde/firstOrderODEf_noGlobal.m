@@ -55,7 +55,7 @@ if ~enableSinglecellEq
   return;
 end
 
-[modelP,modelGrowth]= singlecell.modelCoeffs_weber(ones(11,1),false,false);
+[modelP,modelGrowth]= singlecell.modelCoeffs_weber(ones(11,1),1,false,false);
 yIdx1= max(nodeIdx)+1;  % Index of 1st y of 0th bacterium
 if bactNodesEqulength
   bactNodeN= sum(bactNodes(:,1));
