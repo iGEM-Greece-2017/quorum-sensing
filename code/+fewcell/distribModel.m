@@ -11,9 +11,9 @@ params.runID= randi(2147483644);
 global enableSinglecellEq; enableSinglecellEq= true;  % false: debugging only
 global enableGraphics; enableGraphics= true;
 % time
-params.t.tstop= 60*2;   % min
+params.t.tstop= 60*18;   % min
 params.t.tstart= 0;
-params.t.timePoints= 200;
+params.t.timePoints= 600;
 % coefficients
 %params.c.c_agar= 7.1e-5*60;                % [mm^2/min]
 params.c.c_agar= 25e-5*60;                 % [mm^2/min]
@@ -24,14 +24,13 @@ params.c.d_AHL= 7e-5;                      % [1/min]
 % geometry
 params.g.bactSize= 1e-3*[1,2.164];
 params.g.bactCenter0= 1e-3*[100,-1.082];
-%params.g.nRings= 100; params.g.nLayers= 2;
-params.g.nRings= 2; params.g.nLayers= 1;
+params.g.nRings= 100; params.g.nLayers= 2;
 params.g.ringDist= 5;   % must be an odd number
 params.g.layerSeparation= 1;
-%params.g.domainLim= [17,5.51];       % small disk
+params.g.domainLim= [17,5.51];       % small disk
 %params.g.domainLim= [1.7, .551];     % xs
 %params.g.domainLim= [1.4, .45];     % xs
-params.g.domainLim= [.4,.1];         % tiny
+%params.g.domainLim= [.4,.1];         % tiny
 %params.g.domainLim= [20,20]*1e-3;    % tiny
 
 % Membrane r: 12.5mm -> (30oC)
